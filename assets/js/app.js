@@ -72,7 +72,7 @@
     var pl = p(slug);
     if (pl.avatar) {
       return '<div class="portrait ' + (cls || '') + '" style="background-image:url(\'' +
-        esc(pl.avatar) + '\');background-size:cover"></div>';
+        esc(pl.avatar) + '\')"></div>';
     }
     return '<div class="portrait ' + (cls || '') + '" style="--pc:' + esc(pl.color) + '">' +
       esc(firstInitial(pl.name)) + '</div>';

@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Jun 9, 2026 · evening PT",
+  "updated": "Jun 10, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -27,7 +27,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "jester",      "place": 7, "score": 3480, "holesWon": 4,  "holesDone": 35, "parDelta": 23,  "knockouts": 107 },
         { "player": "slack",       "place": 8, "score": 1080, "holesWon": 2,  "holesDone": 5,  "parDelta": -4,  "knockouts": 10 }
       ],
-      "note": "Rogue ran away with it. Toilet Duck quietly won 8 holes and still landed 6th. Slack bailed after 5 and posted a cool 1080."
+      "note": "Rogue ran away with it. Toilet Duck quietly won 8 holes and still landed 6th. Slack joined late for the last five holes and still posted a cool 1080."
     }
   ]
 }
