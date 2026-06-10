@@ -28,22 +28,30 @@
         <button class="pill" id="pill-fancy" aria-pressed="true">Fancy</button>
         <button class="pill" id="pill-optimized" aria-pressed="false">Optimized</button>
       </div>
-      <div class="seasons" role="group" aria-label="Season">
-        <button class="pill" id="pill-s1" aria-pressed="true">Season 1</button>
-        <button class="pill" id="pill-s0" aria-pressed="false">Season 0</button>
+      <div class="drop drop-season">
+        <label class="sr-only" for="season-select">Season</label>
+        <select class="desk-select" id="season-select" aria-label="Season">
+          <option value="1" selected>Season 1</option>
+          <option value="0">Season 0</option>
+        </select>
       </div>
     </div>
     <div class="topbar-meta">
       <div class="media-player" id="media-player">
         <button type="button" class="media-play" id="media-play" aria-label="Play music" aria-pressed="false">&#9654;</button>
+        <button type="button" class="media-skip" id="media-skip" aria-label="Skip to next track">&#9197;</button>
+        <div class="drop drop-tracks">
+          <button type="button" class="media-list" id="media-list" aria-label="Choose track" aria-haspopup="listbox" aria-expanded="false">&#9776;</button>
+          <ul class="drop-menu" id="media-menu" hidden role="listbox" aria-label="Tracks"></ul>
+        </div>
         <div class="media-body">
           <div class="media-track" id="media-track" title="Playlist">Main Menu</div>
           <label class="media-vol-wrap">
             <span class="sr-only">Volume</span>
-            <input type="range" class="media-vol" id="media-vol" min="0" max="100" value="60">
+            <input type="range" class="media-vol" id="media-vol" min="0" max="100" value="30">
           </label>
         </div>
-        <audio id="media-audio" preload="none"></audio>
+        <audio id="media-audio" preload="auto"></audio>
       </div>
       <div class="updated" id="updated">Loading...</div>
     </div>
@@ -62,6 +70,13 @@
     <span id="footer-note">The official record of the Monday night league.</span>
   </footer>
 
+</div>
+<div id="portrait-lightbox" class="lightbox" hidden aria-hidden="true">
+  <div class="lightbox-inner" role="dialog" aria-modal="true" aria-label="Player portrait">
+    <button type="button" class="lightbox-close" aria-label="Close portrait">&times;</button>
+    <img class="lightbox-img" alt="">
+    <div class="lightbox-cap" id="lightbox-cap"></div>
+  </div>
 </div>
 <script src="assets/js/app.js"></script>
 </body>

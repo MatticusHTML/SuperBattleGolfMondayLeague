@@ -35,13 +35,15 @@
     error: document.getElementById('error'),
     pillFancy: document.getElementById('pill-fancy'),
     pillOptimized: document.getElementById('pill-optimized'),
-    pillS1: document.getElementById('pill-s1'),
-    pillS0: document.getElementById('pill-s0'),
+    seasonSelect: document.getElementById('season-select'),
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
     footerNote: document.getElementById('footer-note'),
     sky: document.getElementById('sky-balls'),
     mediaPlay: document.getElementById('media-play'),
+    mediaSkip: document.getElementById('media-skip'),
+    mediaList: document.getElementById('media-list'),
+    mediaMenu: document.getElementById('media-menu'),
     mediaTrack: document.getElementById('media-track'),
     mediaVol: document.getElementById('media-vol'),
     mediaAudio: document.getElementById('media-audio')
@@ -49,6 +51,9 @@
 
   var PLAYERS = {};
   var skyTimer = null;
+  var fadeRaf = null;
+  var trackBusy = false;
+  var FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2000;
   var MODE_KEY = 'sbg-display-mode';
   var VOL_KEY = 'sbg-volume';
   var TRACKS = [
@@ -94,22 +99,30 @@
 
   function seasonStatChips(s) {
     return '<div class="season-stats">' +
+      '<span class="chip" title="Total first place matches">1st Places <b>' + num(s.wins) + '</b></span>' +
+      '<span class="chip chip-pts">Points <b>' + num(s.points) + '</b></span>' +
       '<span class="chip">Holes Won <b>' + num(s.holesWon) + '</b></span>' +
-      '<span class="chip">Done <b>' + num(s.holesDone) + '</b></span>' +
+      '<span class="chip">Holes Finished <b>' + num(s.holesDone) + '</b></span>' +
       '<span class="chip">Par <b>' + signed(num(s.parDelta)) + '</b></span>' +
       '<span class="chip">KOs <b>' + num(s.knockouts) + '</b></span>' +
-      '<span class="chip" title="Total first place matches">1st Places <b>' + num(s.wins) + '</b></span>' +
-      '<span class="chip chip-pts">Pts <b>' + num(s.points) + '</b></span>' +
     '</div>';
   }
 
-  function portrait(slug, cls) {
+  function portrait(slug, cls, clickable) {
     var pl = p(slug);
+    var c = cls || '';
+    if (pl.avatar && clickable !== false) {
+      return '<button type="button" class="portrait portrait-btn ' + c + '"' +
+        ' data-portrait="' + esc(pl.avatar) + '"' +
+        ' data-name="' + esc(pl.name) + '"' +
+        ' aria-label="View full portrait of ' + esc(pl.name) + '"' +
+        ' style="background-image:url(\'' + esc(pl.avatar) + '\')"></button>';
+    }
     if (pl.avatar) {
-      return '<div class="portrait ' + (cls || '') + '" style="background-image:url(\'' +
+      return '<div class="portrait ' + c + '" style="background-image:url(\'' +
         esc(pl.avatar) + '\')"></div>';
     }
-    return '<div class="portrait ' + (cls || '') + '" style="--pc:' + esc(pl.color) + '">' +
+    return '<div class="portrait ' + c + '" style="--pc:' + esc(pl.color) + '">' +
       esc(firstInitial(pl.name)) + '</div>';
   }
   function ball(kind) {
@@ -216,6 +229,32 @@
   }
 
   /* ---------- music player ---------- */
+  function getTargetVol() {
+    return el.mediaVol ? el.mediaVol.value / 100 : 0.3;
+  }
+
+  function clearFade() {
+    if (fadeRaf) { cancelAnimationFrame(fadeRaf); fadeRaf = null; }
+  }
+
+  function fadeVolume(to, ms, done) {
+    clearFade();
+    if (!ms || !el.mediaAudio) {
+      el.mediaAudio.volume = to;
+      if (done) done();
+      return;
+    }
+    var from = el.mediaAudio.volume;
+    var start = performance.now();
+    function step(now) {
+      var t = Math.min(1, (now - start) / ms);
+      el.mediaAudio.volume = from + (to - from) * t;
+      if (t < 1) fadeRaf = requestAnimationFrame(step);
+      else { fadeRaf = null; if (done) done(); }
+    }
+    fadeRaf = requestAnimationFrame(step);
+  }
+
   function setPlayUi(on) {
     musicOn = on;
     el.mediaPlay.innerHTML = on ? '&#10074;&#10074;' : '&#9654;';
@@ -223,46 +262,197 @@
     el.mediaPlay.setAttribute('aria-pressed', on ? 'true' : 'false');
   }
 
-  function loadTrack(i, play) {
-    trackIdx = i;
+  function updateTrackUi() {
     var t = TRACKS[trackIdx];
-    el.mediaAudio.src = t.file;
     el.mediaTrack.textContent = t.label;
     el.mediaTrack.title = t.label + ' (' + (trackIdx + 1) + '/' + TRACKS.length + ')';
-    if (play) {
-      el.mediaAudio.play().then(function () { setPlayUi(true); }).catch(function () { setPlayUi(false); });
+    if (el.mediaMenu) {
+      el.mediaMenu.querySelectorAll('[data-idx]').forEach(function (btn) {
+        var on = parseInt(btn.getAttribute('data-idx'), 10) === trackIdx;
+        btn.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
     }
+  }
+
+  function setTrackSource(i) {
+    trackIdx = i;
+    el.mediaAudio.src = TRACKS[trackIdx].file;
+    updateTrackUi();
+  }
+
+  function closeTrackMenu() {
+    if (!el.mediaMenu) return;
+    el.mediaMenu.hidden = true;
+    el.mediaList.setAttribute('aria-expanded', 'false');
+  }
+
+  function openTrackMenu() {
+    el.mediaMenu.hidden = false;
+    el.mediaList.setAttribute('aria-expanded', 'true');
+  }
+
+  function toggleTrackMenu() {
+    if (el.mediaMenu.hidden) openTrackMenu();
+    else closeTrackMenu();
+  }
+
+  function goToTrack(i, shouldPlay, fadeOutFirst) {
+    if (trackBusy) return;
+    i = (i + TRACKS.length) % TRACKS.length;
+    if (i === trackIdx && el.mediaAudio.src && !shouldPlay && !fadeOutFirst) return;
+
+    var targetVol = getTargetVol();
+    var playing = musicOn && !el.mediaAudio.paused;
+
+    function beginNext() {
+      setTrackSource(i);
+      if (shouldPlay) {
+        el.mediaAudio.volume = 0;
+        el.mediaAudio.play().then(function () {
+          setPlayUi(true);
+          trackBusy = true;
+          fadeVolume(targetVol, FADE_MS, function () { trackBusy = false; });
+        }).catch(function () { setPlayUi(false); trackBusy = false; });
+      } else {
+        el.mediaAudio.volume = targetVol;
+        trackBusy = false;
+      }
+    }
+
+    if (fadeOutFirst && playing && el.mediaAudio.src) {
+      trackBusy = true;
+      fadeVolume(0, FADE_MS, function () {
+        el.mediaAudio.pause();
+        beginNext();
+      });
+    } else {
+      trackBusy = true;
+      beginNext();
+    }
+  }
+
+  function skipTrack() {
+    goToTrack(trackIdx + 1, musicOn, true);
   }
 
   function initMedia() {
     if (!el.mediaAudio) return;
-    var vol = 0.6;
+    var vol = 0.3;
     try {
-      var saved = parseFloat(localStorage.getItem(VOL_KEY));
-      if (!isNaN(saved)) vol = Math.max(0, Math.min(1, saved));
+      if (localStorage.getItem(VOL_KEY) !== null) {
+        var saved = parseFloat(localStorage.getItem(VOL_KEY));
+        if (!isNaN(saved)) vol = Math.max(0, Math.min(1, saved));
+      }
     } catch (e) { /* ignore */ }
-    el.mediaAudio.volume = vol;
+    el.mediaAudio.volume = 0;
     el.mediaVol.value = Math.round(vol * 100);
-    loadTrack(0, false);
+
+    if (el.mediaMenu) {
+      el.mediaMenu.innerHTML = TRACKS.map(function (t, i) {
+        return '<li><button type="button" role="option" data-idx="' + i + '">' + esc(t.label) + '</button></li>';
+      }).join('');
+    }
+
+    setTrackSource(Math.floor(Math.random() * TRACKS.length));
+    el.mediaAudio.play().then(function () {
+      setPlayUi(true);
+      fadeVolume(vol, FADE_MS);
+    }).catch(function () { setPlayUi(false); el.mediaAudio.volume = vol; });
 
     el.mediaPlay.addEventListener('click', function () {
+      if (trackBusy) return;
       if (musicOn) {
+        clearFade();
         el.mediaAudio.pause();
+        el.mediaAudio.volume = getTargetVol();
         setPlayUi(false);
         return;
       }
-      if (!el.mediaAudio.src) loadTrack(trackIdx, false);
-      el.mediaAudio.play().then(function () { setPlayUi(true); }).catch(function () { setPlayUi(false); });
+      if (!el.mediaAudio.src) setTrackSource(trackIdx);
+      el.mediaAudio.volume = 0;
+      el.mediaAudio.play().then(function () {
+        setPlayUi(true);
+        fadeVolume(getTargetVol(), FADE_MS);
+      }).catch(function () { setPlayUi(false); });
+    });
+
+    el.mediaSkip.addEventListener('click', skipTrack);
+
+    if (el.mediaList) {
+      el.mediaList.addEventListener('click', function (e) {
+        e.stopPropagation();
+        toggleTrackMenu();
+      });
+    }
+
+    if (el.mediaMenu) {
+      el.mediaMenu.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-idx]');
+        if (!btn) return;
+        closeTrackMenu();
+        goToTrack(parseInt(btn.getAttribute('data-idx'), 10), true, true);
+      });
+    }
+
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.drop-tracks')) closeTrackMenu();
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') closeTrackMenu();
     });
 
     el.mediaVol.addEventListener('input', function () {
-      var v = el.mediaVol.value / 100;
-      el.mediaAudio.volume = v;
+      var v = getTargetVol();
+      if (!fadeRaf) el.mediaAudio.volume = v;
       try { localStorage.setItem(VOL_KEY, String(v)); } catch (e) { /* ignore */ }
     });
 
     el.mediaAudio.addEventListener('ended', function () {
-      loadTrack((trackIdx + 1) % TRACKS.length, musicOn);
+      if (musicOn) goToTrack(trackIdx + 1, true, false);
+    });
+  }
+
+  function initPortraitLightbox() {
+    var lb = document.getElementById('portrait-lightbox');
+    if (!lb) return;
+    var img = lb.querySelector('.lightbox-img');
+    var cap = document.getElementById('lightbox-cap');
+    var closeBtn = lb.querySelector('.lightbox-close');
+
+    function closeLightbox() {
+      lb.hidden = true;
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('lightbox-open');
+      img.removeAttribute('src');
+    }
+
+    function openLightbox(src, name) {
+      img.src = src;
+      img.alt = name + ' portrait';
+      cap.textContent = name;
+      lb.hidden = false;
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      closeBtn.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.portrait-btn');
+      if (btn) {
+        openLightbox(btn.getAttribute('data-portrait'), btn.getAttribute('data-name'));
+      }
+    });
+
+    lb.addEventListener('click', function (e) {
+      if (e.target.classList.contains('lightbox-img')) return;
+      closeLightbox();
+    });
+
+    closeBtn.addEventListener('click', closeLightbox);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !lb.hidden) closeLightbox();
     });
   }
 
@@ -335,25 +525,16 @@
     var champ = c.podium.gold;
     if (champ) {
       var pl = p(champ);
-      var line = lastResultFor(c.last, champ);
-      var chips = '';
-      if (line) {
-        chips =
-          '<span class="chip"><b>' + num(line.score) + '</b> points</span>' +
-          '<span class="chip"><b>' + num(line.holesWon) + '</b> holes won</span>' +
-          '<span class="chip"><b>' + signed(num(line.parDelta)) + '</b> vs par</span>' +
-          '<span class="chip"><b>' + num(line.knockouts) + '</b> knockouts</span>';
-      }
       var heldBalls = ball('gold') + (c.green === champ ? ball('green') : '');
-      var heroClass = 'hero ' + cardClasses(champ, c, koLeader);
+      var matchMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
-      html += '<section class="' + esc(heroClass.trim()) + '">' +
+      html += '<section class="hero hero-champion">' +
         portrait(champ) +
         '<div class="hero-body">' +
-          '<div class="hero-tag">' + ball('gold') + ' Reigning Champion &middot; ' + esc(c.last.label || c.last.date || '') + '</div>' +
+          '<div class="hero-tag">' + ball('gold') + ' Reigning Champion &middot; ' + esc(c.last.label || 'Night') + '</div>' +
+          (matchMeta ? '<div class="hero-date">' + esc(matchMeta) + '</div>' : '') +
           '<div class="hero-name">' + esc(pl.name) + '</div>' +
           '<div class="hero-handle">' + esc(pl.handle) + '</div>' +
-          '<div class="hero-line">' + chips + '</div>' +
           (c.last.note ? '<div class="hero-quote">' + esc(c.last.note) + '</div>' : '') +
           '<div class="hero-balls">' + heldBalls + '</div>' +
         '</div>' +
@@ -480,10 +661,9 @@
   /* ---------- season switching ---------- */
   function showSeason(n) {
     var on1 = n === 1;
-    el.pillS1.setAttribute('aria-pressed', on1);
-    el.pillS0.setAttribute('aria-pressed', !on1);
     el.viewS1.hidden = !on1;
     el.viewS0.hidden = on1;
+    if (el.seasonSelect) el.seasonSelect.value = String(on1 ? 1 : 0);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -511,13 +691,17 @@
         if (lg && lg.note) el.footerNote.textContent = lg.note;
       }).catch(function () { /* league note is optional */ });
 
-      el.pillS1.addEventListener('click', function () { showSeason(1); });
-      el.pillS0.addEventListener('click', function () { showSeason(0); });
+      if (el.seasonSelect) {
+        el.seasonSelect.addEventListener('change', function () {
+          showSeason(parseInt(el.seasonSelect.value, 10));
+        });
+      }
       el.pillFancy.addEventListener('click', function () { setMode('fancy'); });
       el.pillOptimized.addEventListener('click', function () { setMode('optimized'); });
 
       setMode(getMode());
       initMedia();
+      initPortraitLightbox();
     })
     .catch(fail);
 })();
