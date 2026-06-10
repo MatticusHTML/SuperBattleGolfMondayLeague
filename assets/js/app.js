@@ -126,29 +126,35 @@
       esc(firstInitial(pl.name)) + '</div>';
   }
   function ball(kind) {
-    var label = kind.charAt(0).toUpperCase() + kind.slice(1) + ' ball';
+    var labels = {
+      gold: 'Gold ball',
+      silver: 'Silver ball',
+      bronze: 'Bronze ball',
+      green: 'Green ball',
+      ko: 'KO ball'
+    };
+    var label = labels[kind] || kind.charAt(0).toUpperCase() + kind.slice(1) + ' ball';
     return '<span class="ball ' + kind + '" role="img" aria-label="' + label + '" title="' + label + '"></span>';
   }
 
-  function ballsHeld(slug, c) {
+  function ballsHeld(slug, c, koLeader) {
     var balls = [];
     if (c.podium.gold === slug) balls.push('gold');
     if (c.podium.silver === slug) balls.push('silver');
     if (c.podium.bronze === slug) balls.push('bronze');
     if (c.green === slug) balls.push('green');
+    if (koLeader && koLeader.slug === slug) balls.push('ko');
     return balls;
   }
 
-  function ballCardClass(slug, c) {
-    var balls = ballsHeld(slug, c);
+  function ballCardClass(slug, c, koLeader) {
+    var balls = ballsHeld(slug, c, koLeader);
     if (!balls.length) return '';
     return 'ball-card ' + balls.map(function (b) { return 'ball-' + b; }).join(' ');
   }
 
   function cardClasses(slug, c, koLeader) {
-    var parts = [ballCardClass(slug, c)];
-    if (koLeader && koLeader.slug === slug) parts.push('combat-leader');
-    return parts.filter(Boolean).join(' ');
+    return ballCardClass(slug, c, koLeader);
   }
 
   function getMode() {
@@ -525,7 +531,9 @@
     var champ = c.podium.gold;
     if (champ) {
       var pl = p(champ);
-      var heldBalls = ball('gold') + (c.green === champ ? ball('green') : '');
+      var heldBalls = ball('gold') +
+        (c.green === champ ? ball('green') : '') +
+        (koLeader && koLeader.slug === champ ? ball('ko') : '');
       var matchMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
       html += '<section class="hero hero-champion">' +
@@ -547,6 +555,7 @@
       '<div class="item">' + ball('silver') + '<div class="t"><b>Silver</b><span>2nd last Monday</span></div></div>' +
       '<div class="item">' + ball('bronze') + '<div class="t"><b>Bronze</b><span>3rd last Monday</span></div></div>' +
       '<div class="item">' + ball('green') + '<div class="t"><b>Green</b><span>Season points leader</span></div></div>' +
+      '<div class="item">' + ball('ko') + '<div class="t"><b>KO</b><span>Season knockouts leader</span></div></div>' +
     '</div>';
 
     // standings
@@ -559,6 +568,7 @@
       if (c.podium.silver === s.slug) held += ball('silver');
       if (c.podium.bronze === s.slug) held += ball('bronze');
       if (c.green === s.slug) held += ball('green');
+      if (koLeader && koLeader.slug === s.slug) held += ball('ko');
       html += '<div class="row ' + esc(cardClasses(s.slug, c, koLeader).trim()) + '" style="--pc:' + esc(pl.color) + '">' +
         '<div class="rank">' + (i + 1) + '</div>' +
         portrait(s.slug, 'thumb') +
