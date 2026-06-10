@@ -1,0 +1,12 @@
+{
+  "players": [
+    { "slug": "rogue",       "name": "Rogue",       "handle": "Rogue_Amputee",       "color": "#e0772f", "avatar": null },
+    { "slug": "sandman",     "name": "Sandman",     "handle": "Grandmaster Sandman", "color": "#6ab04c", "avatar": null },
+    { "slug": "princegames", "name": "Princegames", "handle": "PrinceGames",         "color": "#e0992a", "avatar": null },
+    { "slug": "matticus",    "name": "Matticus",    "handle": "the red devil",       "color": "#d63b3b", "avatar": null },
+    { "slug": "cunder",      "name": "Cunder",      "handle": "CunderThock",         "color": "#f0a830", "avatar": null },
+    { "slug": "toiletduck",  "name": "Toilet Duck", "handle": "SnSoldier",           "color": "#4a7fd0", "avatar": null },
+    { "slug": "jester",      "name": "Jester",      "handle": "master-jester",       "color": "#9b59b6", "avatar": null },
+    { "slug": "slack",       "name": "Slack",       "handle": "slackandlack",        "color": "#2ec5c5", "avatar": null }
+  ]
+}

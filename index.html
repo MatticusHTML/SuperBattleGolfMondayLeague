@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Super Battle Golf League</title>
+<meta name="description" content="The official record of our Monday night Super Battle Golf league.">
+<link rel="icon" type="image/png" href="assets/img/gold.png">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="topbar">
+    <div class="mark">
+      <div class="icon" aria-hidden="true"></div>
+      <div>
+        <h1>Super Battle Golf</h1>
+        <div class="sub">Monday League &middot; 45 Holes</div>
+      </div>
+    </div>
+    <div class="seasons" role="group" aria-label="Season">
+      <button class="pill" id="pill-s1" aria-pressed="true">Season 1</button>
+      <button class="pill" id="pill-s0" aria-pressed="false">Season 0</button>
+    </div>
+    <div class="updated" id="updated">Loading...</div>
+  </header>
+
+  <div class="errbar" id="error" hidden>
+    <b>Could not load league data.</b>
+    This site reads its stats over the network, so it needs to run from a web server.
+    Open it from your GitHub Pages URL (or a local server), not by double-clicking the file.
+  </div>
+
+  <main id="view-s1" class="season-view"><div class="loading">Loading the league...</div></main>
+  <main id="view-s0" class="season-view" hidden></main>
+
+  <footer>
+    <span id="footer-note">The official record of the Monday night league.</span>
+  </footer>
+
+</div>
+<script src="assets/js/app.js"></script>
+</body>
+</html>
