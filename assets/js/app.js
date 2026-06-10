@@ -40,13 +40,31 @@
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
     footerNote: document.getElementById('footer-note'),
-    sky: document.getElementById('sky-balls')
+    sky: document.getElementById('sky-balls'),
+    mediaPlay: document.getElementById('media-play'),
+    mediaTrack: document.getElementById('media-track'),
+    mediaVol: document.getElementById('media-vol'),
+    mediaAudio: document.getElementById('media-audio')
   };
 
   var PLAYERS = {};
   var skyTimer = null;
-  var SPARKLE_COUNT = { gold: 16, silver: 4, bronze: 1 };
   var MODE_KEY = 'sbg-display-mode';
+  var VOL_KEY = 'sbg-volume';
+  var TRACKS = [
+    { file: 'assets/audio/01-main-menu.mp3', label: 'Main Menu' },
+    { file: 'assets/audio/02-lobby.mp3', label: 'Lobby' },
+    { file: 'assets/audio/03-forest.mp3', label: 'Forest' },
+    { file: 'assets/audio/05-forest-hurry.mp3', label: 'Forest (Hurry!)' },
+    { file: 'assets/audio/06-coastal.mp3', label: 'Coastal' },
+    { file: 'assets/audio/07-coastal-hurry.mp3', label: 'Coastal (Hurry!)' },
+    { file: 'assets/audio/08-desert.mp3', label: 'Desert' },
+    { file: 'assets/audio/10-desert-hurry.mp3', label: 'Desert (Hurry!)' },
+    { file: 'assets/audio/11-winter.mp3', label: 'Winter' },
+    { file: 'assets/audio/13-winter-hurry.mp3', label: 'Winter (Hurry!)' }
+  ];
+  var trackIdx = 0;
+  var musicOn = false;
 
   /* ---------- loading ---------- */
   function load(path) {
@@ -76,10 +94,12 @@
 
   function seasonStatChips(s) {
     return '<div class="season-stats">' +
-      '<span class="chip">Won <b>' + num(s.holesWon) + '</b></span>' +
+      '<span class="chip">Holes Won <b>' + num(s.holesWon) + '</b></span>' +
       '<span class="chip">Done <b>' + num(s.holesDone) + '</b></span>' +
       '<span class="chip">Par <b>' + signed(num(s.parDelta)) + '</b></span>' +
       '<span class="chip">KOs <b>' + num(s.knockouts) + '</b></span>' +
+      '<span class="chip" title="Total first place matches">1st Places <b>' + num(s.wins) + '</b></span>' +
+      '<span class="chip chip-pts">Pts <b>' + num(s.points) + '</b></span>' +
     '</div>';
   }
 
@@ -130,47 +150,6 @@
     el.pillOptimized.setAttribute('aria-pressed', !fancy);
     try { localStorage.setItem(MODE_KEY, fancy ? 'fancy' : 'optimized'); } catch (e) { /* ignore */ }
     refreshFx();
-  }
-
-  function clearBallFx(root) {
-    (root || document).querySelectorAll('.ball-fx').forEach(function (node) { node.remove(); });
-  }
-
-  function mountBallFx(root) {
-    clearBallFx(root);
-    if (getMode() !== 'fancy') return;
-    (root || document).querySelectorAll('.ball-card').forEach(function (card) {
-      var fx = document.createElement('div');
-      fx.className = 'ball-fx';
-      fx.setAttribute('aria-hidden', 'true');
-      ['gold', 'silver', 'bronze'].forEach(function (kind) {
-        if (!card.classList.contains('ball-' + kind)) return;
-        var n = SPARKLE_COUNT[kind] || 0;
-        for (var i = 0; i < n; i++) {
-          var spark = document.createElement('span');
-          spark.className = 'spark spark-' + kind;
-          spark.style.setProperty('--x', (Math.random() * 100) + '%');
-          spark.style.setProperty('--y', (Math.random() * 100) + '%');
-          spark.style.setProperty('--dx', ((Math.random() - 0.5) * 36) + 'px');
-          spark.style.setProperty('--dy', (-14 - Math.random() * 28) + 'px');
-          spark.style.setProperty('--delay', (Math.random() * 2.5) + 's');
-          spark.style.setProperty('--dur', (1.4 + Math.random() * 1.8) + 's');
-          fx.appendChild(spark);
-        }
-      });
-      if (card.classList.contains('ball-green')) {
-        for (var j = 0; j < 10; j++) {
-          var zap = document.createElement('span');
-          zap.className = 'zap';
-          zap.style.setProperty('--x', (Math.random() * 100) + '%');
-          zap.style.setProperty('--y', (Math.random() * 100) + '%');
-          zap.style.setProperty('--rot', (Math.random() * 360) + 'deg');
-          zap.style.setProperty('--delay', (Math.random() * 0.4) + 's');
-          fx.appendChild(zap);
-        }
-      }
-      card.appendChild(fx);
-    });
   }
 
   function launchSkyBall() {
@@ -226,15 +205,65 @@
       skyTimer = setTimeout(function () {
         launchSkyBall();
         next();
-      }, 5000 + Math.random() * 15000);
+      }, 5000 + Math.random() * 5000);
     }
     next();
   }
 
   function refreshFx() {
-    mountBallFx(el.viewS1);
     if (getMode() === 'fancy') scheduleSkyBall();
     else stopSkyBalls();
+  }
+
+  /* ---------- music player ---------- */
+  function setPlayUi(on) {
+    musicOn = on;
+    el.mediaPlay.innerHTML = on ? '&#10074;&#10074;' : '&#9654;';
+    el.mediaPlay.setAttribute('aria-label', on ? 'Pause music' : 'Play music');
+    el.mediaPlay.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
+
+  function loadTrack(i, play) {
+    trackIdx = i;
+    var t = TRACKS[trackIdx];
+    el.mediaAudio.src = t.file;
+    el.mediaTrack.textContent = t.label;
+    el.mediaTrack.title = t.label + ' (' + (trackIdx + 1) + '/' + TRACKS.length + ')';
+    if (play) {
+      el.mediaAudio.play().then(function () { setPlayUi(true); }).catch(function () { setPlayUi(false); });
+    }
+  }
+
+  function initMedia() {
+    if (!el.mediaAudio) return;
+    var vol = 0.6;
+    try {
+      var saved = parseFloat(localStorage.getItem(VOL_KEY));
+      if (!isNaN(saved)) vol = Math.max(0, Math.min(1, saved));
+    } catch (e) { /* ignore */ }
+    el.mediaAudio.volume = vol;
+    el.mediaVol.value = Math.round(vol * 100);
+    loadTrack(0, false);
+
+    el.mediaPlay.addEventListener('click', function () {
+      if (musicOn) {
+        el.mediaAudio.pause();
+        setPlayUi(false);
+        return;
+      }
+      if (!el.mediaAudio.src) loadTrack(trackIdx, false);
+      el.mediaAudio.play().then(function () { setPlayUi(true); }).catch(function () { setPlayUi(false); });
+    });
+
+    el.mediaVol.addEventListener('input', function () {
+      var v = el.mediaVol.value / 100;
+      el.mediaAudio.volume = v;
+      try { localStorage.setItem(VOL_KEY, String(v)); } catch (e) { /* ignore */ }
+    });
+
+    el.mediaAudio.addEventListener('ended', function () {
+      loadTrack((trackIdx + 1) % TRACKS.length, musicOn);
+    });
   }
 
   /* ---------- Season 1 compute ---------- */
@@ -356,7 +385,6 @@
           '<div class="handle">' + esc(pl.handle) + '</div></div>' +
         '<div class="held">' + held + '</div>' +
         seasonStatChips(s) +
-        '<div class="pts"><b>' + s.points + '</b><span>points</span></div>' +
       '</div>';
     });
     html += '</div>';
@@ -489,6 +517,7 @@
       el.pillOptimized.addEventListener('click', function () { setMode('optimized'); });
 
       setMode(getMode());
+      initMedia();
     })
     .catch(fail);
 })();

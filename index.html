@@ -33,7 +33,20 @@
         <button class="pill" id="pill-s0" aria-pressed="false">Season 0</button>
       </div>
     </div>
-    <div class="updated" id="updated">Loading...</div>
+    <div class="topbar-meta">
+      <div class="media-player" id="media-player">
+        <button type="button" class="media-play" id="media-play" aria-label="Play music" aria-pressed="false">&#9654;</button>
+        <div class="media-body">
+          <div class="media-track" id="media-track" title="Playlist">Main Menu</div>
+          <label class="media-vol-wrap">
+            <span class="sr-only">Volume</span>
+            <input type="range" class="media-vol" id="media-vol" min="0" max="100" value="60">
+          </label>
+        </div>
+        <audio id="media-audio" preload="none"></audio>
+      </div>
+      <div class="updated" id="updated">Loading...</div>
+    </div>
   </header>
 
   <div class="errbar" id="error" hidden>

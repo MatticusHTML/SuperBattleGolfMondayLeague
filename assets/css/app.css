@@ -38,9 +38,9 @@ body{
 .sky-balls{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .mode-optimized .sky-balls{display:none}
 .sky-shot{
-  position:absolute;left:-8%;top:var(--y);width:5px;height:5px;border-radius:50%;
+  position:absolute;left:-8%;top:var(--y);width:15px;height:15px;border-radius:50%;
   background:radial-gradient(circle,#fff 0%,rgba(255,255,255,.85) 35%,rgba(227,179,65,.35) 100%);
-  box-shadow:-28px 0 14px rgba(255,255,255,.22),-56px 0 28px rgba(227,179,65,.12),0 0 10px rgba(255,255,255,.45);
+  box-shadow:-84px 0 42px rgba(255,255,255,.22),-168px 0 84px rgba(227,179,65,.12),0 0 30px rgba(255,255,255,.45);
   transform:rotate(var(--tilt));animation:skyShot var(--dur) linear forwards;opacity:0}
 @keyframes skyShot{
   0%{left:-8%;top:var(--y);opacity:0}
@@ -78,7 +78,21 @@ body{
 .pill:hover{transform:translateY(-1px);border-color:var(--fairway-deep)}
 .pill[aria-pressed="true"]{color:var(--night);background:var(--fairway);border-color:var(--fairway);font-weight:600}
 .pill:focus-visible{outline:2px solid var(--fairway);outline-offset:2px}
-.updated{font-family:var(--mono);font-size:calc(11px * var(--font-scale));color:var(--muted-2);white-space:nowrap}
+.topbar-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto}
+.updated{font-family:var(--mono);font-size:calc(11px * var(--font-scale));color:var(--muted-2);white-space:nowrap;text-align:right}
+.media-player{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+  border-radius:12px;padding:8px 12px;min-width:210px;max-width:280px}
+.media-play{width:32px;height:32px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);
+  color:var(--fairway);font-size:calc(12px * var(--font-scale));cursor:pointer;line-height:1;
+  display:grid;place-items:center;transition:transform .12s,border-color .12s,background .12s}
+.media-play:hover{transform:translateY(-1px);border-color:var(--fairway-deep);background:rgba(63,163,99,.12)}
+.media-play[aria-pressed="true"]{color:var(--night);background:var(--fairway);border-color:var(--fairway)}
+.media-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.media-track{font-family:var(--mono);font-size:calc(10px * var(--font-scale));color:var(--muted);
+  letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.media-vol-wrap{display:flex;align-items:center}
+.media-vol{width:100%;height:4px;accent-color:var(--fairway);cursor:pointer}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 
 /* ---- error + loading ---- */
 .errbar{background:rgba(224,83,58,.1);border:1px solid rgba(224,83,58,.4);border-radius:12px;
@@ -127,7 +141,7 @@ body{
 
 /* ---- standings ---- */
 .standings{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
-.row{display:grid;grid-template-columns:30px 88px 1fr auto auto auto;align-items:center;gap:13px;
+.row{display:grid;grid-template-columns:30px 88px 1fr auto auto;align-items:center;gap:13px;
   padding:11px 16px;border-bottom:1px solid var(--line);border-left:3px solid var(--pc,transparent)}
 .row:last-child{border-bottom:0}
 .row .rank{font-family:var(--mono);font-size:calc(14px * var(--font-scale));color:var(--muted-2);text-align:center}
@@ -137,17 +151,26 @@ body{
 .row .handle{font-family:var(--mono);font-size:calc(11px * var(--font-scale));color:var(--muted-2)}
 .row .held{display:flex;gap:4px;min-width:0;align-self:center}
 .row .held .ball{width:20px;height:20px}
-.season-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;min-width:148px}
+.season-stats{
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(4,auto);
+  gap:6px;min-width:168px;align-self:center}
+.season-stats .chip:nth-child(1){grid-column:1;grid-row:1}
+.season-stats .chip:nth-child(2){grid-column:2;grid-row:1}
+.season-stats .chip:nth-child(3){grid-column:1;grid-row:2}
+.season-stats .chip:nth-child(4){grid-column:2;grid-row:2}
+.season-stats .chip:nth-child(5){grid-column:2;grid-row:3}
+.season-stats .chip:nth-child(6){grid-column:2;grid-row:4}
 .season-stats .chip{font-family:var(--mono);font-size:calc(10px * var(--font-scale));color:var(--text);
-  background:rgba(63,163,99,.1);border:1px solid var(--line);border-radius:6px;padding:4px 8px;white-space:nowrap;text-align:center}
+  background:rgba(63,163,99,.1);border:1px solid var(--line);border-radius:6px;padding:4px 8px;
+  white-space:nowrap;text-align:center;line-height:1.25}
 .season-stats .chip b{color:var(--fairway);font-weight:600}
+.season-stats .chip-pts b{color:var(--text);font-size:calc(11px * var(--font-scale))}
 .row .pts{font-family:var(--mono);text-align:right;min-width:78px;align-self:center}
 .row .pts b{font-size:calc(18px * var(--font-scale));color:var(--text)}
 .row .pts span{font-size:calc(9px * var(--font-scale));color:var(--muted-2);display:block;letter-spacing:.12em;text-transform:uppercase}
 
-/* ---- combat hits leader ---- */
-.combat-leader{
-  animation:combatGlow 3s ease-in-out infinite}
+/* ---- combat hits leader (optimized: subtle pulse only) ---- */
+.mode-optimized .combat-leader{animation:combatGlow 3s ease-in-out infinite}
 @keyframes combatGlow{
   0%,100%{box-shadow:inset 0 0 0 1px rgba(224,83,58,.14),0 0 14px rgba(224,83,58,.06)}
   50%{box-shadow:inset 0 0 0 1px rgba(224,83,58,.32),0 0 30px rgba(224,83,58,.16)}}
@@ -194,70 +217,142 @@ footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);
   .hero-name{font-size:calc(30px * var(--font-scale))}
   .legend{grid-template-columns:repeat(2,1fr)}
   .fun{grid-template-columns:repeat(2,1fr)}
-  .row{grid-template-columns:24px 76px 1fr auto auto;gap:10px;padding:10px 12px;
+  .row{grid-template-columns:24px 76px 1fr auto;gap:10px;padding:10px 12px;
     grid-template-areas:
-      "rank thumb who pts"
-      "rank thumb held pts"
+      "rank thumb who held"
       "stats stats stats stats"}
   .row .rank{grid-area:rank}
   .row .thumb{grid-area:thumb}
   .row .who{grid-area:who}
-  .row .held{grid-area:held;align-self:start}
+  .row .held{grid-area:held;align-self:start;justify-self:end}
   .row .season-stats{grid-area:stats;min-width:0;width:100%;margin-top:2px}
-  .row .pts{grid-area:pts;min-width:60px}
+  .season-stats .chip:nth-child(n){grid-column:auto;grid-row:auto}
   .row .thumb{width:76px;height:76px}
   .row .held .ball{width:16px;height:16px}
   .row .name{font-size:calc(15px * var(--font-scale))}
-  .row .pts b{font-size:calc(16px * var(--font-scale))}
+  .media-player{min-width:0;max-width:100%;width:100%}
+  .topbar-meta{width:100%;align-items:stretch}
   .mark h1{font-size:calc(18px * var(--font-scale))}
 }
 @media (prefers-reduced-motion:reduce){.pill{transition:none}}
 
-/* ---- fancy mode: ball card fx ---- */
-.mode-fancy .ball-card{position:relative;overflow:visible;z-index:1}
+/* ---- fancy mode: metallic card sheen (no sparkles) ---- */
+.mode-fancy .ball-card,
+.mode-fancy .row.combat-leader,
+.mode-fancy .hero.combat-leader{position:relative;overflow:hidden;z-index:1}
+.mode-fancy .ball-card::before,
+.mode-fancy .ball-card::after,
+.mode-fancy .row.combat-leader::before,
+.mode-fancy .hero.combat-leader::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0}
+.mode-fancy .ball-card > *,
+.mode-fancy .row.combat-leader > *,
+.mode-fancy .hero.combat-leader > *{position:relative;z-index:1}
+
+/* default rows stay dark fairway panel */
+.mode-fancy .row:not(.ball-card):not(.combat-leader){background:var(--panel)}
+
+/* gold: full sheen */
+.mode-fancy .ball-card.ball-gold{
+  background:linear-gradient(155deg,#4a3a14 0%,#3d3218 28%,#243622 100%);
+  border-color:rgba(227,179,65,.72);
+  box-shadow:0 0 0 1px rgba(227,179,65,.45),0 0 56px rgba(227,179,65,.22),0 20px 48px -24px rgba(0,0,0,.85)}
+.mode-fancy .ball-card.ball-gold::before{
+  background:linear-gradient(105deg,transparent 25%,rgba(255,236,170,.42) 46%,rgba(227,179,65,.35) 52%,transparent 72%);
+  animation:cardSheen 3.2s ease-in-out infinite}
+.mode-fancy .ball-card.ball-gold::after{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(227,179,65,.18),transparent 70%);
+  animation:cardGlow 4s ease-in-out infinite}
+
+/* silver: ~40% of gold */
+.mode-fancy .ball-card.ball-silver:not(.ball-gold){
+  background:linear-gradient(155deg,#343a3e 0%,#252f28 100%);
+  border-color:rgba(198,206,219,.45);
+  box-shadow:0 0 0 1px rgba(198,206,219,.28),0 0 28px rgba(198,206,219,.1)}
+.mode-fancy .ball-card.ball-silver:not(.ball-gold)::before{
+  background:linear-gradient(105deg,transparent 30%,rgba(230,236,245,.16) 50%,transparent 70%);
+  animation:cardSheen 4.2s ease-in-out infinite}
+.mode-fancy .ball-card.ball-silver:not(.ball-gold)::after{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(198,206,219,.08),transparent 70%);
+  animation:cardGlow 5s ease-in-out infinite}
+
+/* bronze: ~15% of gold */
+.mode-fancy .ball-card.ball-bronze:not(.ball-gold):not(.ball-silver){
+  background:linear-gradient(155deg,#3a2e1e 0%,#252f28 100%);
+  border-color:rgba(205,138,78,.42);
+  box-shadow:0 0 0 1px rgba(205,138,78,.25),0 0 18px rgba(205,138,78,.08)}
+.mode-fancy .ball-card.ball-bronze:not(.ball-gold):not(.ball-silver)::before{
+  background:linear-gradient(105deg,transparent 34%,rgba(255,210,160,.1) 50%,transparent 66%);
+  animation:cardSheen 4.8s ease-in-out infinite}
+.mode-fancy .ball-card.ball-bronze:not(.ball-gold):not(.ball-silver)::after{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(205,138,78,.06),transparent 70%)}
+
+/* green: bright fairway card */
+.mode-fancy .ball-card.ball-green:not(.ball-gold):not(.ball-silver):not(.ball-bronze){
+  background:linear-gradient(155deg,#1a4a2a 0%,#163822 45%,#13241a 100%);
+  border-color:rgba(90,210,120,.55);
+  box-shadow:0 0 0 1px rgba(63,163,99,.35),0 0 36px rgba(63,163,99,.16)}
+.mode-fancy .ball-card.ball-green:not(.ball-gold):not(.ball-silver):not(.ball-bronze)::before{
+  background:linear-gradient(105deg,transparent 28%,rgba(160,255,190,.22) 50%,transparent 72%);
+  animation:cardSheen 3.8s ease-in-out infinite}
+.mode-fancy .ball-card.ball-green:not(.ball-gold):not(.ball-silver):not(.ball-bronze)::after{
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(63,163,99,.14),transparent 70%);
+  animation:cardGlow 4.5s ease-in-out infinite}
+
+/* combat red card */
+.mode-fancy .combat-leader:not(.ball-gold):not(.ball-silver):not(.ball-bronze):not(.ball-green){
+  background:linear-gradient(155deg,#4a1a14 0%,#321612 45%,#13241a 100%);
+  border-color:rgba(224,83,58,.55);
+  box-shadow:0 0 0 1px rgba(224,83,58,.35),0 0 34px rgba(224,83,58,.14)}
+.mode-fancy .combat-leader:not(.ball-gold):not(.ball-silver):not(.ball-bronze):not(.ball-green)::before{
+  background:linear-gradient(105deg,transparent 30%,rgba(255,140,110,.2) 50%,transparent 70%);
+  animation:cardSheen 3.6s ease-in-out infinite}
+
+/* hybrids: gold + green */
+.mode-fancy .ball-card.ball-gold.ball-green{
+  background:linear-gradient(145deg,#4a3a14 0%,#1f5a32 38%,#3d3218 100%);
+  border-color:rgba(227,179,65,.75);
+  box-shadow:0 0 0 1px rgba(227,179,65,.4),0 0 50px rgba(227,179,65,.2),0 0 36px rgba(63,163,99,.14);
+  animation:hybridPulse 4.5s ease-in-out infinite}
+.mode-fancy .ball-card.ball-gold.ball-green::before{
+  background:linear-gradient(105deg,transparent 22%,rgba(255,236,170,.38) 42%,rgba(125,255,160,.22) 56%,transparent 74%);
+  animation:cardSheen 3s ease-in-out infinite}
+.mode-fancy .ball-card.ball-gold.ball-green::after{
+  background:linear-gradient(255deg,transparent 30%,rgba(63,163,99,.18) 50%,transparent 70%);
+  animation:cardSheen 4.8s ease-in-out infinite reverse}
+
+/* epic: gold + green + combat (Rogue scenario if also KO leader, or any triple) */
+.mode-fancy .ball-card.ball-gold.ball-green.combat-leader,
+.mode-fancy .ball-card.ball-gold.combat-leader,
+.mode-fancy .ball-card.ball-green.combat-leader,
+.mode-fancy .ball-card.ball-silver.combat-leader,
+.mode-fancy .ball-card.ball-bronze.combat-leader,
+.mode-fancy .ball-card.combat-leader{
+  animation:hybridPulse 3.8s ease-in-out infinite}
+.mode-fancy .ball-card.ball-gold.ball-green.combat-leader{
+  background:linear-gradient(150deg,#4a3010 0%,#1f5a32 30%,#4a1810 62%,#3d3218 100%);
+  border-color:rgba(255,200,100,.7);
+  box-shadow:0 0 0 1px rgba(227,179,65,.42),0 0 48px rgba(227,179,65,.18),0 0 32px rgba(63,163,99,.12),0 0 28px rgba(224,83,58,.12)}
+.mode-fancy .ball-card.ball-gold.ball-green.combat-leader::before{
+  background:linear-gradient(105deg,transparent 18%,rgba(255,236,170,.4) 38%,rgba(125,255,160,.2) 52%,rgba(255,120,90,.16) 66%,transparent 82%);
+  animation:cardSheen 2.8s ease-in-out infinite}
+.mode-fancy .ball-card.ball-gold.combat-leader:not(.ball-green)::before{
+  background:linear-gradient(105deg,transparent 24%,rgba(255,236,170,.36) 44%,rgba(255,120,90,.18) 58%,transparent 76%)}
+.mode-fancy .ball-card.ball-green.combat-leader:not(.ball-gold)::before{
+  background:linear-gradient(105deg,transparent 28%,rgba(160,255,190,.22) 48%,rgba(255,120,90,.16) 62%,transparent 78%)}
+
+.mode-fancy .hero.ball-card{overflow:hidden}
 .mode-fancy .standings{overflow:visible}
-.mode-fancy .row.ball-card{z-index:2}
 
-.mode-fancy .hero.ball-card{overflow:visible}
-.mode-fancy .hero .portrait,.mode-fancy .hero-body{position:relative;z-index:1}
-.mode-fancy .hero.ball-card.ball-gold{
-  border-color:rgba(227,179,65,.55);
-  background:linear-gradient(155deg,#1c3224 0%,var(--panel-2) 35%,var(--panel) 70%,#14261a 100%);
-  box-shadow:0 0 0 1px rgba(227,179,65,.38),0 0 48px rgba(227,179,65,.14),0 24px 56px -22px rgba(0,0,0,.88)}
-.mode-fancy .hero.ball-card.ball-gold::before{
-  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
-  background:linear-gradient(108deg,transparent 38%,rgba(227,179,65,.11) 50%,transparent 62%);
-  animation:heroShimmer 5s ease-in-out infinite}
+@keyframes cardSheen{0%,100%{opacity:.35;transform:translateX(-12%) skewX(-8deg)}50%{opacity:1;transform:translateX(12%) skewX(-8deg)}}
+@keyframes cardGlow{0%,100%{opacity:.45}50%{opacity:.95}}
+@keyframes hybridPulse{
+  0%,100%{filter:brightness(1)}
+  50%{filter:brightness(1.08)}}
 
-.mode-fancy .row.ball-silver{
-  box-shadow:inset 0 0 0 1px rgba(198,206,219,.12),0 0 22px rgba(198,206,219,.06)}
-.mode-fancy .row.ball-bronze{
-  box-shadow:inset 0 0 0 1px rgba(205,138,78,.14),0 0 16px rgba(205,138,78,.05)}
-.mode-fancy .row.ball-green{
-  box-shadow:inset 0 0 0 1px rgba(63,163,99,.18),0 0 24px rgba(63,163,99,.08)}
-
-.ball-fx{position:absolute;inset:0;border-radius:inherit;pointer-events:none;overflow:visible;z-index:3}
-.spark{
-  position:absolute;left:var(--x);top:var(--y);border-radius:50%;pointer-events:none;
-  animation:sparkFloat var(--dur) ease-out infinite;animation-delay:var(--delay)}
-.spark-gold{width:4px;height:4px;background:#fff;box-shadow:0 0 7px #e3b341,0 0 14px rgba(227,179,65,.75)}
-.spark-silver{width:3px;height:3px;background:#eef2f8;box-shadow:0 0 5px #c6cedb,0 0 10px rgba(198,206,219,.55)}
-.spark-bronze{width:2px;height:2px;background:#ffd9b0;box-shadow:0 0 4px #cd8a4e,0 0 8px rgba(205,138,78,.5)}
-.zap{
-  position:absolute;left:var(--x);top:var(--y);width:2px;height:10px;pointer-events:none;
-  background:linear-gradient(180deg,#b8ffd0,#3fa363);border-radius:1px;
-  box-shadow:0 0 8px rgba(63,163,99,.85),0 0 16px rgba(125,255,160,.35);
-  transform:rotate(var(--rot));opacity:0;animation:zapArc .12s steps(2,end) infinite;animation-delay:var(--delay)}
-
-@keyframes heroShimmer{0%,100%{opacity:.35;transform:translateX(-8%)}50%{opacity:.9;transform:translateX(8%)}}
-@keyframes sparkFloat{
-  0%{transform:translate(0,0) scale(.6);opacity:0}
-  18%{opacity:1}
-  100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
-@keyframes zapArc{0%,100%{opacity:0;transform:rotate(var(--rot)) scaleY(.4)}50%{opacity:.95;transform:rotate(calc(var(--rot) + 18deg)) scaleY(1.1)}}
-
-.mode-optimized .ball-fx{display:none}
 @media (prefers-reduced-motion:reduce){
-  .mode-fancy .hero.ball-card.ball-gold::before,.spark,.zap,.sky-shot{animation:none!important;display:none}
-  .combat-leader{animation:none;box-shadow:inset 0 0 0 1px rgba(224,83,58,.22),0 0 20px rgba(224,83,58,.1)}
+  .mode-fancy .ball-card::before,.mode-fancy .ball-card::after,
+  .mode-fancy .combat-leader::before,.sky-shot{animation:none!important}
+  .mode-fancy .ball-card.ball-gold.ball-green,.mode-fancy .ball-card.combat-leader{animation:none}
+  .mode-optimized .combat-leader{animation:none;box-shadow:inset 0 0 0 1px rgba(224,83,58,.22),0 0 20px rgba(224,83,58,.1)}
 }
