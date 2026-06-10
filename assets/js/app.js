@@ -33,14 +33,20 @@
   var el = {
     updated: document.getElementById('updated'),
     error: document.getElementById('error'),
+    pillFancy: document.getElementById('pill-fancy'),
+    pillOptimized: document.getElementById('pill-optimized'),
     pillS1: document.getElementById('pill-s1'),
     pillS0: document.getElementById('pill-s0'),
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
-    footerNote: document.getElementById('footer-note')
+    footerNote: document.getElementById('footer-note'),
+    sky: document.getElementById('sky-balls')
   };
 
   var PLAYERS = {};
+  var skyTimer = null;
+  var SPARKLE_COUNT = { gold: 16, silver: 4, bronze: 1 };
+  var MODE_KEY = 'sbg-display-mode';
 
   /* ---------- loading ---------- */
   function load(path) {
@@ -68,6 +74,15 @@
   function firstInitial(name) { return (name || '?').trim().charAt(0).toUpperCase(); }
   function signed(n) { return (n > 0 ? '+' : '') + n; }
 
+  function seasonStatChips(s) {
+    return '<div class="season-stats">' +
+      '<span class="chip">Won <b>' + num(s.holesWon) + '</b></span>' +
+      '<span class="chip">Done <b>' + num(s.holesDone) + '</b></span>' +
+      '<span class="chip">Par <b>' + signed(num(s.parDelta)) + '</b></span>' +
+      '<span class="chip">KOs <b>' + num(s.knockouts) + '</b></span>' +
+    '</div>';
+  }
+
   function portrait(slug, cls) {
     var pl = p(slug);
     if (pl.avatar) {
@@ -80,6 +95,146 @@
   function ball(kind) {
     var label = kind.charAt(0).toUpperCase() + kind.slice(1) + ' ball';
     return '<span class="ball ' + kind + '" role="img" aria-label="' + label + '" title="' + label + '"></span>';
+  }
+
+  function ballsHeld(slug, c) {
+    var balls = [];
+    if (c.podium.gold === slug) balls.push('gold');
+    if (c.podium.silver === slug) balls.push('silver');
+    if (c.podium.bronze === slug) balls.push('bronze');
+    if (c.green === slug) balls.push('green');
+    return balls;
+  }
+
+  function ballCardClass(slug, c) {
+    var balls = ballsHeld(slug, c);
+    if (!balls.length) return '';
+    return 'ball-card ' + balls.map(function (b) { return 'ball-' + b; }).join(' ');
+  }
+
+  function cardClasses(slug, c, koLeader) {
+    var parts = [ballCardClass(slug, c)];
+    if (koLeader && koLeader.slug === slug) parts.push('combat-leader');
+    return parts.filter(Boolean).join(' ');
+  }
+
+  function getMode() {
+    return document.documentElement.classList.contains('mode-optimized') ? 'optimized' : 'fancy';
+  }
+
+  function setMode(mode) {
+    var fancy = mode !== 'optimized';
+    document.documentElement.classList.toggle('mode-fancy', fancy);
+    document.documentElement.classList.toggle('mode-optimized', !fancy);
+    el.pillFancy.setAttribute('aria-pressed', fancy);
+    el.pillOptimized.setAttribute('aria-pressed', !fancy);
+    try { localStorage.setItem(MODE_KEY, fancy ? 'fancy' : 'optimized'); } catch (e) { /* ignore */ }
+    refreshFx();
+  }
+
+  function clearBallFx(root) {
+    (root || document).querySelectorAll('.ball-fx').forEach(function (node) { node.remove(); });
+  }
+
+  function mountBallFx(root) {
+    clearBallFx(root);
+    if (getMode() !== 'fancy') return;
+    (root || document).querySelectorAll('.ball-card').forEach(function (card) {
+      var fx = document.createElement('div');
+      fx.className = 'ball-fx';
+      fx.setAttribute('aria-hidden', 'true');
+      ['gold', 'silver', 'bronze'].forEach(function (kind) {
+        if (!card.classList.contains('ball-' + kind)) return;
+        var n = SPARKLE_COUNT[kind] || 0;
+        for (var i = 0; i < n; i++) {
+          var spark = document.createElement('span');
+          spark.className = 'spark spark-' + kind;
+          spark.style.setProperty('--x', (Math.random() * 100) + '%');
+          spark.style.setProperty('--y', (Math.random() * 100) + '%');
+          spark.style.setProperty('--dx', ((Math.random() - 0.5) * 36) + 'px');
+          spark.style.setProperty('--dy', (-14 - Math.random() * 28) + 'px');
+          spark.style.setProperty('--delay', (Math.random() * 2.5) + 's');
+          spark.style.setProperty('--dur', (1.4 + Math.random() * 1.8) + 's');
+          fx.appendChild(spark);
+        }
+      });
+      if (card.classList.contains('ball-green')) {
+        for (var j = 0; j < 10; j++) {
+          var zap = document.createElement('span');
+          zap.className = 'zap';
+          zap.style.setProperty('--x', (Math.random() * 100) + '%');
+          zap.style.setProperty('--y', (Math.random() * 100) + '%');
+          zap.style.setProperty('--rot', (Math.random() * 360) + 'deg');
+          zap.style.setProperty('--delay', (Math.random() * 0.4) + 's');
+          fx.appendChild(zap);
+        }
+      }
+      card.appendChild(fx);
+    });
+  }
+
+  function launchSkyBall() {
+    if (!el.sky || getMode() !== 'fancy') return;
+    var shot = document.createElement('div');
+    var y = 8 + Math.random() * 72;
+    var dur = 1 + Math.random() * 0.9;
+    var tilt = -6 + Math.random() * 12;
+    var bounce = Math.random() < 0.5;
+
+    shot.className = 'sky-shot' + (bounce ? ' sky-shot--bounce' : '');
+    shot.style.setProperty('--y', y + 'vh');
+    shot.style.setProperty('--tilt', tilt + 'deg');
+    shot.style.setProperty('--dur', dur + 's');
+
+    if (bounce) {
+      var edges = ['top', 'bottom', 'right'];
+      var edge = edges[Math.floor(Math.random() * edges.length)];
+      if (edge === 'bottom') {
+        shot.style.setProperty('--hit-x', (32 + Math.random() * 42) + '%');
+        shot.style.setProperty('--hit-y', '93vh');
+        shot.style.setProperty('--end-x', '108%');
+        shot.style.setProperty('--end-y', Math.max(8, y - 12 - Math.random() * 28) + 'vh');
+        shot.style.setProperty('--tilt-end', (tilt - 8 - Math.random() * 14) + 'deg');
+      } else if (edge === 'top') {
+        shot.style.setProperty('--hit-x', (32 + Math.random() * 42) + '%');
+        shot.style.setProperty('--hit-y', '4vh');
+        shot.style.setProperty('--end-x', '108%');
+        shot.style.setProperty('--end-y', Math.min(88, y + 12 + Math.random() * 28) + 'vh');
+        shot.style.setProperty('--tilt-end', (tilt + 8 + Math.random() * 14) + 'deg');
+      } else {
+        shot.style.setProperty('--hit-x', '96%');
+        shot.style.setProperty('--hit-y', Math.max(8, Math.min(88, y + (Math.random() - 0.5) * 36)) + 'vh');
+        shot.style.setProperty('--end-x', (18 + Math.random() * 28) + '%');
+        shot.style.setProperty('--end-y', Math.max(8, Math.min(88, y - 18 + Math.random() * 36)) + 'vh');
+        shot.style.setProperty('--tilt-end', (tilt + 140 + Math.random() * 40) + 'deg');
+      }
+    }
+
+    el.sky.appendChild(shot);
+    shot.addEventListener('animationend', function () { shot.remove(); });
+  }
+
+  function stopSkyBalls() {
+    if (skyTimer) { clearTimeout(skyTimer); skyTimer = null; }
+    if (el.sky) el.sky.innerHTML = '';
+  }
+
+  function scheduleSkyBall() {
+    stopSkyBalls();
+    if (getMode() !== 'fancy') return;
+    function next() {
+      skyTimer = setTimeout(function () {
+        launchSkyBall();
+        next();
+      }, 5000 + Math.random() * 15000);
+    }
+    next();
+  }
+
+  function refreshFx() {
+    mountBallFx(el.viewS1);
+    if (getMode() === 'fancy') scheduleSkyBall();
+    else stopSkyBalls();
   }
 
   /* ---------- Season 1 compute ---------- */
@@ -147,6 +302,7 @@
     var html = '';
 
     // hero (gold ball holder = most recent winner)
+    var koLeader = leaderBy(c.standings, 'knockouts', 'desc');
     var champ = c.podium.gold;
     if (champ) {
       var pl = p(champ);
@@ -160,8 +316,9 @@
           '<span class="chip"><b>' + num(line.knockouts) + '</b> knockouts</span>';
       }
       var heldBalls = ball('gold') + (c.green === champ ? ball('green') : '');
+      var heroClass = 'hero ' + cardClasses(champ, c, koLeader);
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
-      html += '<section class="hero">' +
+      html += '<section class="' + esc(heroClass.trim()) + '">' +
         portrait(champ) +
         '<div class="hero-body">' +
           '<div class="hero-tag">' + ball('gold') + ' Reigning Champion &middot; ' + esc(c.last.label || c.last.date || '') + '</div>' +
@@ -192,12 +349,13 @@
       if (c.podium.silver === s.slug) held += ball('silver');
       if (c.podium.bronze === s.slug) held += ball('bronze');
       if (c.green === s.slug) held += ball('green');
-      html += '<div class="row" style="--pc:' + esc(pl.color) + '">' +
+      html += '<div class="row ' + esc(cardClasses(s.slug, c, koLeader).trim()) + '" style="--pc:' + esc(pl.color) + '">' +
         '<div class="rank">' + (i + 1) + '</div>' +
         portrait(s.slug, 'thumb') +
         '<div class="who"><div class="name">' + esc(pl.name) + '</div>' +
           '<div class="handle">' + esc(pl.handle) + '</div></div>' +
         '<div class="held">' + held + '</div>' +
+        seasonStatChips(s) +
         '<div class="pts"><b>' + s.points + '</b><span>points</span></div>' +
       '</div>';
     });
@@ -205,7 +363,6 @@
 
     // fun cards
     var hw = leaderBy(c.standings, 'holesWon', 'desc');
-    var ko = leaderBy(c.standings, 'knockouts', 'desc');
     var par = leaderBy(c.standings, 'parDelta', 'asc');
     var hd = leaderBy(c.standings, 'holesDone', 'desc');
     function card(k, leader, valText) {
@@ -217,7 +374,7 @@
     html += '<div class="eyebrow">For Fun &middot; season to date</div>';
     html += '<div class="fun">' +
       card('Most Holes Won', hw, hw ? hw.holesWon + ' holes' : '') +
-      card('Most Knockouts', ko, ko ? ko.knockouts + ' KOs' : '') +
+      card('Most Knockouts', koLeader, koLeader ? koLeader.knockouts + ' KOs' : '') +
       card('Best vs Par', par, par ? signed(par.parDelta) : '') +
       card('Most Holes Finished', hd, hd ? hd.holesDone + ' holes' : '') +
     '</div>';
@@ -328,6 +485,10 @@
 
       el.pillS1.addEventListener('click', function () { showSeason(1); });
       el.pillS0.addEventListener('click', function () { showSeason(0); });
+      el.pillFancy.addEventListener('click', function () { setMode('fancy'); });
+      el.pillOptimized.addEventListener('click', function () { setMode('optimized'); });
+
+      setMode(getMode());
     })
     .catch(fail);
 })();

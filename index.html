@@ -7,8 +7,12 @@
 <meta name="description" content="The official record of our Monday night Super Battle Golf league.">
 <link rel="icon" type="image/png" href="assets/img/gold.png">
 <link rel="stylesheet" href="assets/css/app.css">
+<script>
+(function(){try{var m=localStorage.getItem('sbg-display-mode');document.documentElement.className=m==='optimized'?'mode-optimized':'mode-fancy';}catch(e){document.documentElement.className='mode-fancy';}})();
+</script>
 </head>
 <body>
+<div id="sky-balls" class="sky-balls" aria-hidden="true"></div>
 <div class="wrap">
 
   <header class="topbar">
@@ -19,9 +23,15 @@
         <div class="sub">Monday League &middot; The 45 Hole Special</div>
       </div>
     </div>
-    <div class="seasons" role="group" aria-label="Season">
-      <button class="pill" id="pill-s1" aria-pressed="true">Season 1</button>
-      <button class="pill" id="pill-s0" aria-pressed="false">Season 0</button>
+    <div class="topbar-actions">
+      <div class="modes" role="group" aria-label="Display mode">
+        <button class="pill" id="pill-fancy" aria-pressed="true">Fancy</button>
+        <button class="pill" id="pill-optimized" aria-pressed="false">Optimized</button>
+      </div>
+      <div class="seasons" role="group" aria-label="Season">
+        <button class="pill" id="pill-s1" aria-pressed="true">Season 1</button>
+        <button class="pill" id="pill-s0" aria-pressed="false">Season 0</button>
+      </div>
     </div>
     <div class="updated" id="updated">Loading...</div>
   </header>
