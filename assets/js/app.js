@@ -69,6 +69,8 @@
     { file: 'assets/audio/13-winter-hurry.mp3', label: 'Winter (Hurry!)' }
   ];
   var trackIdx = 0;
+  var shuffleOrder = [];
+  var shufflePos = 0;
   var musicOn = false;
 
   /* ---------- loading ---------- */
@@ -235,6 +237,56 @@
   }
 
   /* ---------- music player ---------- */
+  function isHurryTrack(i) {
+    return TRACKS[i].label.indexOf(' (Hurry!)') !== -1;
+  }
+
+  function shuffleEligibleIndices() {
+    var out = [];
+    var i;
+    for (i = 0; i < TRACKS.length; i++) {
+      if (!isHurryTrack(i)) out.push(i);
+    }
+    return out;
+  }
+
+  function shuffleArray(arr) {
+    for (var j = arr.length - 1; j > 0; j--) {
+      var k = Math.floor(Math.random() * (j + 1));
+      var tmp = arr[j];
+      arr[j] = arr[k];
+      arr[k] = tmp;
+    }
+    return arr;
+  }
+
+  function buildShuffleOrder(opts) {
+    opts = opts || {};
+    var pool = shuffleEligibleIndices();
+    if (!pool.length) {
+      shuffleOrder = [0];
+      shufflePos = 0;
+      return;
+    }
+    shuffleOrder = shuffleArray(pool.slice());
+    if (opts.avoidFirst != null && shuffleOrder.length > 1 && shuffleOrder[0] === opts.avoidFirst) {
+      var swap = 1 + Math.floor(Math.random() * (shuffleOrder.length - 1));
+      var t = shuffleOrder[0];
+      shuffleOrder[0] = shuffleOrder[swap];
+      shuffleOrder[swap] = t;
+    }
+    shufflePos = 0;
+  }
+
+  function nextShuffledIdx() {
+    shufflePos++;
+    if (shufflePos >= shuffleOrder.length) {
+      buildShuffleOrder({ avoidFirst: isHurryTrack(trackIdx) ? null : trackIdx });
+      shufflePos = 0;
+    }
+    return shuffleOrder[shufflePos];
+  }
+
   function getTargetVol() {
     return el.mediaVol ? el.mediaVol.value / 100 : 0.3;
   }
@@ -338,7 +390,7 @@
   }
 
   function skipTrack() {
-    goToTrack(trackIdx + 1, musicOn, true);
+    goToTrack(nextShuffledIdx(), musicOn, true);
   }
 
   function initMedia() {
@@ -359,7 +411,8 @@
       }).join('');
     }
 
-    setTrackSource(Math.floor(Math.random() * TRACKS.length));
+    buildShuffleOrder();
+    setTrackSource(shuffleOrder[0]);
     el.mediaAudio.play().then(function () {
       setPlayUi(true);
       fadeVolume(vol, FADE_MS);
@@ -395,8 +448,10 @@
       el.mediaMenu.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-idx]');
         if (!btn) return;
+        var idx = parseInt(btn.getAttribute('data-idx'), 10);
         closeTrackMenu();
-        goToTrack(parseInt(btn.getAttribute('data-idx'), 10), true, true);
+        if (!isHurryTrack(idx)) shufflePos = shuffleOrder.indexOf(idx);
+        goToTrack(idx, true, true);
       });
     }
 
@@ -415,7 +470,7 @@
     });
 
     el.mediaAudio.addEventListener('ended', function () {
-      if (musicOn) goToTrack(trackIdx + 1, true, false);
+      if (musicOn) goToTrack(nextShuffledIdx(), true, false);
     });
   }
 
