@@ -66,6 +66,8 @@ Each match in the `matches` array:
   "holes": 45,              // optional
   "results": [ ... ],       // one object per player who played, see below
   "note": "..."             // optional one-liner, shown under the table and as the champ quote
+  "image": "..."            // optional, fun art on the match card in The Record
+  "championImage": "..."    // optional, hero banner only while this match is the most recent
 }
 ```
 

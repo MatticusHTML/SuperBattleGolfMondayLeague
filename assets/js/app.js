@@ -110,19 +110,20 @@
     '</div>';
   }
 
-  function portrait(slug, cls, clickable) {
+  function portrait(slug, cls, clickable, imageOverride) {
     var pl = p(slug);
     var c = cls || '';
-    if (pl.avatar && clickable !== false) {
+    var img = imageOverride || pl.avatar;
+    if (img && clickable !== false) {
       return '<button type="button" class="portrait portrait-btn ' + c + '"' +
-        ' data-portrait="' + esc(pl.avatar) + '"' +
+        ' data-portrait="' + esc(img) + '"' +
         ' data-name="' + esc(pl.name) + '"' +
         ' aria-label="View full portrait of ' + esc(pl.name) + '"' +
-        ' style="background-image:url(\'' + esc(pl.avatar) + '\')"></button>';
+        ' style="background-image:url(\'' + esc(img) + '\')"></button>';
     }
-    if (pl.avatar) {
+    if (img) {
       return '<div class="portrait ' + c + '" style="background-image:url(\'' +
-        esc(pl.avatar) + '\')"></div>';
+        esc(img) + '\')"></div>';
     }
     return '<div class="portrait ' + c + '" style="--pc:' + esc(pl.color) + '">' +
       esc(firstInitial(pl.name)) + '</div>';
@@ -1135,7 +1136,7 @@
       var matchMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
       html += '<section class="hero hero-champion">' +
-        portrait(champ) +
+        portrait(champ, '', true, c.last.championImage || null) +
         '<div class="hero-body">' +
           '<div class="hero-tag">' + ball('gold') + ' Reigning Champion &middot; ' + esc(c.last.label || 'Night') + '</div>' +
           (matchMeta ? '<div class="hero-date">' + esc(matchMeta) + '</div>' : '') +

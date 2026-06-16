@@ -35,6 +35,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
       "par": 5,
       "holes": 45,
       "image": "assets/img/nights/night-2.png",
+      "championImage": "assets/img/players/cunder-champion.png",
       "results": [
         { "player": "cunder",      "place": 1, "score": 3935, "holesWon": 5,  "holesDone": 41, "parDelta": 7,  "knockouts": 71 },
         { "player": "princegames", "place": 2, "score": 3915, "holesWon": 11, "holesDone": 42, "parDelta": 1,  "knockouts": 73 },
