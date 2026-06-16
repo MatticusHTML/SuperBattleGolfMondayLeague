@@ -518,27 +518,60 @@
   }
 
   /* ---------- Season 1 compute ---------- */
+  function freshStanding(slug) {
+    return {
+      slug: slug, points: 0, wins: 0, podiums: 0,
+      holesWon: 0, knockouts: 0, parDelta: 0, holesDone: 0, played: 0
+    };
+  }
+
+  function applyResult(t, r) {
+    t.points += num(r.score);
+    t.holesWon += num(r.holesWon);
+    t.knockouts += num(r.knockouts);
+    t.parDelta += num(r.parDelta);
+    t.holesDone += num(r.holesDone);
+    t.played += 1;
+    if (r.place === 1) t.wins += 1;
+    if (r.place >= 1 && r.place <= 3) t.podiums += 1;
+  }
+
+  function accumulateMatch(totals, m) {
+    (m.results || []).forEach(function (r) {
+      var t = totals[r.player] || (totals[r.player] = freshStanding(r.player));
+      applyResult(t, r);
+    });
+  }
+
+  function sortStandings(totals) {
+    return Object.keys(totals).map(function (k) { return totals[k]; })
+      .sort(function (a, b) { return (b.points - a.points) || (a.parDelta - b.parDelta); });
+  }
+
+  function buildMatchSnapshots(matches) {
+    var totals = {};
+    var snapshots = [];
+    (matches || []).forEach(function (m) {
+      accumulateMatch(totals, m);
+      snapshots.push(sortStandings(totals).map(function (s) {
+        return {
+          slug: s.slug,
+          points: s.points,
+          wins: s.wins,
+          played: s.played,
+          knockouts: s.knockouts,
+          parDelta: s.parDelta
+        };
+      }));
+    });
+    return snapshots;
+  }
+
   function computeS1(data) {
     var totals = {};
-    (data.matches || []).forEach(function (m) {
-      (m.results || []).forEach(function (r) {
-        var t = totals[r.player] || (totals[r.player] = {
-          slug: r.player, points: 0, wins: 0, podiums: 0,
-          holesWon: 0, knockouts: 0, parDelta: 0, holesDone: 0, played: 0
-        });
-        t.points += num(r.score);
-        t.holesWon += num(r.holesWon);
-        t.knockouts += num(r.knockouts);
-        t.parDelta += num(r.parDelta);
-        t.holesDone += num(r.holesDone);
-        t.played += 1;
-        if (r.place === 1) t.wins += 1;
-        if (r.place >= 1 && r.place <= 3) t.podiums += 1;
-      });
-    });
+    (data.matches || []).forEach(function (m) { accumulateMatch(totals, m); });
 
-    var standings = Object.keys(totals).map(function (k) { return totals[k]; })
-      .sort(function (a, b) { return (b.points - a.points) || (a.parDelta - b.parDelta); });
+    var standings = sortStandings(totals);
 
     // most recent match = last item in the array (always append new matches)
     var last = (data.matches && data.matches.length) ? data.matches[data.matches.length - 1] : null;
@@ -569,6 +602,34 @@
     var found = null;
     (last.results || []).forEach(function (r) { if (r.player === slug) found = r; });
     return found;
+  }
+
+  function renderMatchSnapshot(standings, matchIdx, matchCount) {
+    if (!standings.length) return '';
+    var nightNum = matchIdx + 1;
+    var label = matchIdx === matchCount - 1
+      ? 'Season standings after this night (current)'
+      : 'Season standings after Night ' + nightNum;
+    var rows = '';
+    standings.forEach(function (s, i) {
+      rows += '<tr>' +
+        '<td class="pos">' + (i + 1) + '</td>' +
+        '<td class="pl">' + esc(p(s.slug).name) + '</td>' +
+        '<td class="num">' + num(s.points) + '</td>' +
+        '<td class="num">' + num(s.wins) + '</td>' +
+        '<td class="num">' + num(s.played) + '</td>' +
+      '</tr>';
+    });
+    return '<details class="match-snapshot">' +
+      '<summary>' + esc(label) + '</summary>' +
+      '<div class="snapshot-wrap">' +
+        '<p class="snapshot-hint">Rankings frozen after this match, before any later nights.</p>' +
+        '<div class="tbl-scroll"><table class="snapshot-tbl">' +
+          '<thead><tr><th>#</th><th>Player</th><th class="num">Pts</th><th class="num">1st</th><th class="num">Nights</th></tr></thead>' +
+          '<tbody>' + rows + '</tbody>' +
+        '</table></div>' +
+      '</div>' +
+    '</details>';
   }
 
   /* ---------- Season 1 render ---------- */
@@ -655,7 +716,10 @@
 
     // match log (newest first)
     html += '<div class="eyebrow">The Record &middot; every Monday</div>';
-    data.matches.slice().reverse().forEach(function (m) {
+    var matchSnapshots = buildMatchSnapshots(data.matches);
+    var matchCount = data.matches.length;
+    data.matches.slice().reverse().forEach(function (m, revIdx) {
+      var matchIdx = matchCount - 1 - revIdx;
       var rows = (m.results || []).slice().sort(function (a, b) { return a.place - b.place; });
       var body = '';
       rows.forEach(function (r) {
@@ -680,6 +744,7 @@
           '<th class="num">Done</th><th class="num">Par</th><th class="num">KOs</th></tr></thead>' +
           '<tbody>' + body + '</tbody></table></div>' +
         (m.note ? '<div class="match-note">' + esc(m.note) + '</div>' : '') +
+        '<div class="match-foot">' + renderMatchSnapshot(matchSnapshots[matchIdx], matchIdx, matchCount) + '</div>' +
       '</div>';
     });
 
