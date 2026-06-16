@@ -778,10 +778,37 @@
         points: [0],
         knockouts: [0],
         wins: [0],
-        par: [0]
+        par: [0],
+        absent: [false]
       };
       cum[slug] = freshStanding(slug);
     });
+
+    function pushPlayed(slug) {
+      series[slug].points.push(cum[slug].points);
+      series[slug].knockouts.push(cum[slug].knockouts);
+      series[slug].wins.push(cum[slug].wins);
+      series[slug].par.push(cum[slug].parDelta);
+      series[slug].absent.push(false);
+    }
+
+    function pushAbsent(slug) {
+      series[slug].points.push(cum[slug].points);
+      series[slug].knockouts.push(cum[slug].knockouts);
+      series[slug].wins.push(cum[slug].wins);
+      series[slug].par.push(cum[slug].parDelta);
+      series[slug].absent.push(true);
+    }
+
+    function pushFuture() {
+      Object.keys(series).forEach(function (slug) {
+        series[slug].points.push(null);
+        series[slug].knockouts.push(null);
+        series[slug].wins.push(null);
+        series[slug].par.push(null);
+        series[slug].absent.push(false);
+      });
+    }
 
     for (n = 1; n <= maxNight; n++) {
       var m = list[n - 1];
@@ -791,24 +818,13 @@
         Object.keys(series).forEach(function (slug) {
           if (night[slug]) {
             applyResult(cum[slug], night[slug]);
-            series[slug].points.push(cum[slug].points);
-            series[slug].knockouts.push(cum[slug].knockouts);
-            series[slug].wins.push(cum[slug].wins);
-            series[slug].par.push(cum[slug].parDelta);
+            pushPlayed(slug);
           } else {
-            series[slug].points.push(null);
-            series[slug].knockouts.push(null);
-            series[slug].wins.push(null);
-            series[slug].par.push(null);
+            pushAbsent(slug);
           }
         });
       } else {
-        Object.keys(series).forEach(function (slug) {
-          series[slug].points.push(null);
-          series[slug].knockouts.push(null);
-          series[slug].wins.push(null);
-          series[slug].par.push(null);
-        });
+        pushFuture();
       }
     }
 
@@ -911,20 +927,34 @@
     var cfg = TREND_MODES[mode];
     return Object.keys(trendData.series).map(function (slug) {
       var pl = p(slug);
+      var absent = trendData.series[slug].absent;
+      var color = pl.color;
       return {
         label: pl.name,
         data: trendData.series[slug][cfg.key],
-        borderColor: pl.color,
-        backgroundColor: hexToRgba(pl.color, 0.1),
+        _absent: absent,
+        borderColor: color,
+        backgroundColor: hexToRgba(color, 0.1),
         borderWidth: 2.5,
-        pointRadius: 5,
+        pointRadius: function (ctx) {
+          return absent[ctx.dataIndex] ? 4 : 5;
+        },
         pointHoverRadius: 7,
-        pointBackgroundColor: pl.color,
-        pointBorderColor: '#0b150f',
-        pointBorderWidth: 1,
+        pointBackgroundColor: function (ctx) {
+          return absent[ctx.dataIndex] ? 'rgba(11,21,15,0.85)' : color;
+        },
+        pointBorderColor: color,
+        pointBorderWidth: function (ctx) {
+          return absent[ctx.dataIndex] ? 2 : 1;
+        },
         spanGaps: false,
         tension: cfg.stepped ? 0 : 0.28,
-        stepped: cfg.stepped ? 'before' : false
+        stepped: cfg.stepped ? 'before' : false,
+        segment: {
+          borderDash: function (ctx) {
+            return absent[ctx.p1DataIndex] ? [7, 5] : undefined;
+          }
+        }
       };
     });
   }
@@ -972,7 +1002,9 @@
             callbacks: {
               label: function (ctx) {
                 if (ctx.parsed.y == null) return ctx.dataset.label + ': no show';
-                return ctx.dataset.label + ': ' + cfg.format(ctx.parsed.y);
+                var held = ctx.dataset._absent && ctx.dataset._absent[ctx.dataIndex];
+                var val = cfg.format(ctx.parsed.y);
+                return ctx.dataset.label + ': ' + val + (held ? ' (held, absent)' : '');
               }
             }
           }
