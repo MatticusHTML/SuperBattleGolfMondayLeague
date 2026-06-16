@@ -295,10 +295,14 @@
     if (fadeRaf) { cancelAnimationFrame(fadeRaf); fadeRaf = null; }
   }
 
+  function releaseTrackBusy() {
+    trackBusy = false;
+  }
+
   function fadeVolume(to, ms, done) {
     clearFade();
     if (!ms || !el.mediaAudio) {
-      el.mediaAudio.volume = to;
+      if (el.mediaAudio) el.mediaAudio.volume = to;
       if (done) done();
       return;
     }
@@ -311,6 +315,68 @@
       else { fadeRaf = null; if (done) done(); }
     }
     fadeRaf = requestAnimationFrame(step);
+  }
+
+  function setTrackSource(i) {
+    trackIdx = i;
+    el.mediaAudio.src = TRACKS[trackIdx].file;
+    updateTrackUi();
+  }
+
+  function whenTrackReady(run) {
+    var called = false;
+    function cleanup() {
+      el.mediaAudio.removeEventListener('canplay', onReady);
+      el.mediaAudio.removeEventListener('error', onErr);
+    }
+    function onReady() {
+      if (called) return;
+      called = true;
+      cleanup();
+      run();
+    }
+    function onErr() {
+      if (called) return;
+      called = true;
+      cleanup();
+      releaseTrackBusy();
+      setPlayUi(false);
+    }
+    el.mediaAudio.addEventListener('canplay', onReady);
+    el.mediaAudio.addEventListener('error', onErr);
+    el.mediaAudio.load();
+  }
+
+  function playLoadedTrack(fadeIn, done) {
+    var targetVol = getTargetVol();
+    el.mediaAudio.volume = fadeIn ? 0 : targetVol;
+    var p = el.mediaAudio.play();
+    if (!p || !p.then) {
+      if (done) done();
+      return;
+    }
+    p.then(function () {
+      setPlayUi(true);
+      if (fadeIn) fadeVolume(targetVol, FADE_MS, done || releaseTrackBusy);
+      else if (done) done();
+      else releaseTrackBusy();
+    }).catch(function () {
+      releaseTrackBusy();
+      setPlayUi(false);
+    });
+  }
+
+  function loadAndPlay(i, shouldPlay, fadeIn, done) {
+    setTrackSource(i);
+    if (!shouldPlay) {
+      el.mediaAudio.load();
+      releaseTrackBusy();
+      if (done) done();
+      return;
+    }
+    whenTrackReady(function () {
+      playLoadedTrack(fadeIn, done || releaseTrackBusy);
+    });
   }
 
   function setPlayUi(on) {
@@ -332,12 +398,6 @@
     }
   }
 
-  function setTrackSource(i) {
-    trackIdx = i;
-    el.mediaAudio.src = TRACKS[trackIdx].file;
-    updateTrackUi();
-  }
-
   function closeTrackMenu() {
     if (!el.mediaMenu) return;
     el.mediaMenu.hidden = true;
@@ -355,37 +415,27 @@
   }
 
   function goToTrack(i, shouldPlay, fadeOutFirst) {
-    if (trackBusy) return;
+    clearFade();
+    releaseTrackBusy();
     i = (i + TRACKS.length) % TRACKS.length;
-    if (i === trackIdx && el.mediaAudio.src && !shouldPlay && !fadeOutFirst) return;
+    if (i === trackIdx && shouldPlay && !fadeOutFirst && !el.mediaAudio.ended &&
+        !el.mediaAudio.paused && el.mediaAudio.src) return;
 
-    var targetVol = getTargetVol();
-    var playing = musicOn && !el.mediaAudio.paused;
+    var playing = shouldPlay && musicOn && !el.mediaAudio.paused && !el.mediaAudio.ended;
 
-    function beginNext() {
-      setTrackSource(i);
-      if (shouldPlay) {
-        el.mediaAudio.volume = 0;
-        el.mediaAudio.play().then(function () {
-          setPlayUi(true);
-          trackBusy = true;
-          fadeVolume(targetVol, FADE_MS, function () { trackBusy = false; });
-        }).catch(function () { setPlayUi(false); trackBusy = false; });
-      } else {
-        el.mediaAudio.volume = targetVol;
-        trackBusy = false;
-      }
+    function startNext() {
+      trackBusy = true;
+      loadAndPlay(i, shouldPlay, true, releaseTrackBusy);
     }
 
     if (fadeOutFirst && playing && el.mediaAudio.src) {
       trackBusy = true;
       fadeVolume(0, FADE_MS, function () {
         el.mediaAudio.pause();
-        beginNext();
+        startNext();
       });
     } else {
-      trackBusy = true;
-      beginNext();
+      startNext();
     }
   }
 
@@ -412,27 +462,24 @@
     }
 
     buildShuffleOrder();
-    setTrackSource(shuffleOrder[0]);
-    el.mediaAudio.play().then(function () {
-      setPlayUi(true);
-      fadeVolume(vol, FADE_MS);
-    }).catch(function () { setPlayUi(false); el.mediaAudio.volume = vol; });
+    trackBusy = true;
+    loadAndPlay(shuffleOrder[0], true, true, releaseTrackBusy);
 
     el.mediaPlay.addEventListener('click', function () {
-      if (trackBusy) return;
       if (musicOn) {
         clearFade();
+        releaseTrackBusy();
         el.mediaAudio.pause();
         el.mediaAudio.volume = getTargetVol();
         setPlayUi(false);
         return;
       }
+      if (trackBusy) return;
+      trackBusy = true;
       if (!el.mediaAudio.src) setTrackSource(trackIdx);
-      el.mediaAudio.volume = 0;
-      el.mediaAudio.play().then(function () {
-        setPlayUi(true);
-        fadeVolume(getTargetVol(), FADE_MS);
-      }).catch(function () { setPlayUi(false); });
+      whenTrackReady(function () {
+        playLoadedTrack(true, releaseTrackBusy);
+      });
     });
 
     el.mediaSkip.addEventListener('click', skipTrack);
@@ -1046,6 +1093,7 @@
       html += '<div class="match">' +
         '<div class="match-head"><span class="d">' + esc(m.label || m.date) + '</span>' +
           '<span class="c">' + esc(m.date) + (meta ? ' \u00b7 ' + esc(meta) : '') + '</span></div>' +
+        (m.image ? '<div class="match-art"><img src="' + esc(m.image) + '" alt="" loading="lazy"></div>' : '') +
         '<div class="tbl-scroll"><table>' +
           '<thead><tr><th>#</th><th>Player</th><th class="num">Points</th><th class="num">Holes Won</th>' +
           '<th class="num">Done</th><th class="num">Par</th><th class="num">KOs</th></tr></thead>' +

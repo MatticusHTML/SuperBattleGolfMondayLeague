@@ -249,6 +249,8 @@ button.portrait.portrait-btn:focus-visible{outline:2px solid var(--fairway);outl
 .match-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 14px;padding:13px 16px;border-bottom:1px solid var(--line)}
 .match-head .d{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:calc(16px * var(--font-scale))}
 .match-head .c{font-family:var(--mono);font-size:calc(12px * var(--font-scale));color:var(--muted)}
+.match-art{padding:0 16px 12px;border-bottom:1px solid var(--line)}
+.match-art img{display:block;width:100%;max-height:220px;object-fit:cover;object-position:center;border-radius:10px;border:1px solid var(--line)}
 .tbl-scroll{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:560px}
 th,td{text-align:left;padding:9px 16px;font-size:calc(13px * var(--font-scale));border-bottom:1px solid rgba(35,64,47,.5)}
