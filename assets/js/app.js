@@ -699,9 +699,9 @@
   }
 
   function buildTrendData(matches) {
-    var labels = (matches || []).map(function (m) {
+    var labels = ['Night 0'].concat((matches || []).map(function (m) {
       return m.label ? m.label + ' \u00b7 ' + m.date : m.date;
-    });
+    }));
     var ever = {};
     (matches || []).forEach(function (m) {
       (m.results || []).forEach(function (r) { ever[r.player] = true; });
@@ -710,7 +710,12 @@
     var series = {};
     var cum = {};
     Object.keys(ever).forEach(function (slug) {
-      series[slug] = { points: [], knockouts: [], wins: [], par: [] };
+      series[slug] = {
+        points: [0],
+        knockouts: [0],
+        wins: [0],
+        par: [0]
+      };
       cum[slug] = freshStanding(slug);
     });
 
