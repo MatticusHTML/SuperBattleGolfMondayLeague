@@ -123,7 +123,24 @@ rows here. Nothing is hard-coded to 8.
 
 You never edit `meta`, win counts, or who holds a ball. The engine derives all of it.
 
-## Tone of any written copy
+### No-shows (did not attend that Monday)
+
+**In the match data:** only list players who actually played. Do not add a row for someone
+who was absent. Omit them from that night's `results` array entirely (example: Slack on
+Night 2). Their season totals in standings only count nights they played.
+
+**On the Week to Week chart:** the engine catches them up automatically. If a player has
+played before but is missing from a logged night's `results`, their line:
+
+- **Carries forward** the same cumulative stat (flat, unchanged from the previous night).
+- Draws a **dashed horizontal** segment into that night (not a gap, not a drop to zero).
+- Uses a **hollow ring** marker on the absent night.
+- Shows tooltip text like `1,080 (held, absent)`.
+
+When they return a later Monday, the line resumes solid from the carried value. Do not
+change this style unless the user asks. Logic lives in `buildTrendData()` and
+`buildTrendDatasets()` in `assets/js/app.js`.
+
 
 Match notes and any prose should sound like the friend group: friendly roast and hype,
 never cruel. Human voice, no stiff uniform phrasing. **No em dashes anywhere in visible
