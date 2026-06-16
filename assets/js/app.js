@@ -636,6 +636,7 @@
   var trendChart = null;
   var trendData = null;
   var trendMode = 'points';
+  var TREND_AXIS_NIGHTS = 10;
 
   var TREND_MODES = {
     points: {
@@ -698,12 +699,24 @@
     return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
   }
 
+  function trendNightLabel(n, matches) {
+    if (n === 0) return 'Night 0';
+    var m = matches[n - 1];
+    if (!m) return 'Night ' + n;
+    if (m.date) return 'Night ' + n + ' \u00b7 ' + m.date;
+    return m.label || ('Night ' + n);
+  }
+
   function buildTrendData(matches) {
-    var labels = ['Night 0'].concat((matches || []).map(function (m) {
-      return m.label ? m.label + ' \u00b7 ' + m.date : m.date;
-    }));
+    var list = matches || [];
+    var matchCount = list.length;
+    var maxNight = Math.max(TREND_AXIS_NIGHTS, matchCount);
+    var labels = [];
+    var n;
+    for (n = 0; n <= maxNight; n++) labels.push(trendNightLabel(n, list));
+
     var ever = {};
-    (matches || []).forEach(function (m) {
+    list.forEach(function (m) {
       (m.results || []).forEach(function (r) { ever[r.player] = true; });
     });
 
@@ -719,35 +732,45 @@
       cum[slug] = freshStanding(slug);
     });
 
-    (matches || []).forEach(function (m) {
-      var night = {};
-      (m.results || []).forEach(function (r) { night[r.player] = r; });
-      Object.keys(series).forEach(function (slug) {
-        if (night[slug]) {
-          applyResult(cum[slug], night[slug]);
-          series[slug].points.push(cum[slug].points);
-          series[slug].knockouts.push(cum[slug].knockouts);
-          series[slug].wins.push(cum[slug].wins);
-          series[slug].par.push(cum[slug].parDelta);
-        } else {
+    for (n = 1; n <= maxNight; n++) {
+      var m = list[n - 1];
+      if (m) {
+        var night = {};
+        (m.results || []).forEach(function (r) { night[r.player] = r; });
+        Object.keys(series).forEach(function (slug) {
+          if (night[slug]) {
+            applyResult(cum[slug], night[slug]);
+            series[slug].points.push(cum[slug].points);
+            series[slug].knockouts.push(cum[slug].knockouts);
+            series[slug].wins.push(cum[slug].wins);
+            series[slug].par.push(cum[slug].parDelta);
+          } else {
+            series[slug].points.push(null);
+            series[slug].knockouts.push(null);
+            series[slug].wins.push(null);
+            series[slug].par.push(null);
+          }
+        });
+      } else {
+        Object.keys(series).forEach(function (slug) {
           series[slug].points.push(null);
           series[slug].knockouts.push(null);
           series[slug].wins.push(null);
           series[slug].par.push(null);
-        }
-      });
-    });
+        });
+      }
+    }
 
-    return { labels: labels, series: series };
+    return { labels: labels, series: series, matchCount: matchCount };
   }
 
   function trendLeader(modeCfg) {
-    if (!trendData || !trendData.labels.length) return null;
+    if (!trendData || !trendData.matchCount) return null;
     var key = modeCfg.key;
-    var last = trendData.labels.length - 1;
+    var idx = trendData.matchCount;
     var best = null;
     Object.keys(trendData.series).forEach(function (slug) {
-      var v = trendData.series[slug][key][last];
+      var v = trendData.series[slug][key][idx];
       if (v == null) return;
       if (!best || (modeCfg.dir === 'desc' ? v > best.val : v < best.val)) {
         best = { slug: slug, val: v };
@@ -841,7 +864,12 @@
         },
         scales: {
           x: {
-            ticks: { color: '#7d9286', font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 10 } },
+            ticks: {
+              color: '#7d9286',
+              autoSkip: false,
+              maxRotation: 40,
+              font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 10 }
+            },
             grid: {
               color: cfg.grid,
               lineWidth: gridHeavy ? 1 : 1,
