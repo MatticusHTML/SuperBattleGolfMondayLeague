@@ -683,7 +683,11 @@
   var trendChart = null;
   var trendData = null;
   var trendMode = 'points';
+  var trendZoom = 0;
   var TREND_AXIS_NIGHTS = 10;
+  var TREND_ZOOM_MAX = 5;
+  var TREND_ZOOM_THROUGH = [10, 8, 6, 4, 2];
+  var TREND_ZOOM_LABELS = ['10 nights', '8 nights', '6 nights', '4 nights', '2 nights', 'Latest'];
 
   var TREND_MODES = {
     points: {
@@ -811,6 +815,68 @@
     return { labels: labels, series: series, matchCount: matchCount };
   }
 
+  function trendZoomRange() {
+    if (!trendData || !trendData.labels.length) return { min: 0, max: 0 };
+    var last = trendData.labels.length - 1;
+    var mc = trendData.matchCount || 0;
+    if (trendZoom >= TREND_ZOOM_MAX) {
+      if (mc <= 1) return { min: 0, max: Math.min(1, last) };
+      return { min: mc - 1, max: Math.min(mc, last) };
+    }
+    var end = Math.max(TREND_ZOOM_THROUGH[trendZoom], mc);
+    return { min: 0, max: Math.min(end, last) };
+  }
+
+  function trendVisibleYBounds(mode) {
+    var cfg = TREND_MODES[mode];
+    var r = trendZoomRange();
+    var key = cfg.key;
+    var minY = null;
+    var maxY = null;
+    Object.keys(trendData.series).forEach(function (slug) {
+      var arr = trendData.series[slug][key];
+      var i;
+      for (i = r.min; i <= r.max; i++) {
+        var v = arr[i];
+        if (v == null) continue;
+        if (minY === null || v < minY) minY = v;
+        if (maxY === null || v > maxY) maxY = v;
+      }
+    });
+    if (minY === null || maxY === null) return null;
+    var span = maxY - minY;
+    var pad = span > 0 ? span * 0.1 : (cfg.key === 'par' ? 4 : 120);
+    return { min: minY - pad, max: maxY + pad };
+  }
+
+  function updateTrendZoomUi() {
+    var label = document.getElementById('trend-zoom-label');
+    var zoomIn = document.getElementById('trend-zoom-in');
+    var zoomOut = document.getElementById('trend-zoom-out');
+    if (label) label.textContent = TREND_ZOOM_LABELS[trendZoom] || '';
+    if (zoomIn) zoomIn.disabled = trendZoom >= TREND_ZOOM_MAX;
+    if (zoomOut) zoomOut.disabled = trendZoom <= 0;
+  }
+
+  function applyTrendZoom() {
+    if (!trendChart) return;
+    var xr = trendZoomRange();
+    trendChart.options.scales.x.min = xr.min;
+    trendChart.options.scales.x.max = xr.max;
+    if (trendZoom > 0) {
+      var yb = trendVisibleYBounds(trendMode);
+      if (yb) {
+        trendChart.options.scales.y.min = yb.min;
+        trendChart.options.scales.y.max = yb.max;
+      }
+    } else {
+      trendChart.options.scales.y.min = undefined;
+      trendChart.options.scales.y.max = undefined;
+    }
+    trendChart.update();
+    updateTrendZoomUi();
+  }
+
   function trendLeader(modeCfg) {
     if (!trendData || !trendData.matchCount) return null;
     var key = modeCfg.key;
@@ -874,6 +940,8 @@
     }
 
     var gridHeavy = mode === 'par';
+    var xr = trendZoomRange();
+    var yb = trendZoom > 0 ? trendVisibleYBounds(mode) : null;
     trendChart = new Chart(canvas, {
       type: 'line',
       data: {
@@ -911,6 +979,8 @@
         },
         scales: {
           x: {
+            min: xr.min,
+            max: xr.max,
             ticks: {
               color: '#7d9286',
               autoSkip: false,
@@ -925,6 +995,8 @@
             border: { color: 'rgba(35,64,47,0.8)' }
           },
           y: {
+            min: yb ? yb.min : undefined,
+            max: yb ? yb.max : undefined,
             ticks: {
               color: '#7d9286',
               font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 10 },
@@ -946,6 +1018,7 @@
       }
     });
     updateTrendLead(mode);
+    updateTrendZoomUi();
   }
 
   function renderTrendSection() {
@@ -953,11 +1026,18 @@
       '<section class="trend-panel trend-panel--points" id="trend-panel">' +
         '<div class="trend-head">' +
           '<p class="trend-lead" id="trend-lead">Season trends after each Monday night.</p>' +
-          '<div class="trend-tabs" role="tablist" aria-label="Trend chart metric">' +
-            '<button type="button" class="trend-tab" role="tab" data-trend="points" aria-selected="true">Points</button>' +
-            '<button type="button" class="trend-tab" role="tab" data-trend="knockouts" aria-selected="false">KOs</button>' +
-            '<button type="button" class="trend-tab" role="tab" data-trend="wins" aria-selected="false">1st Places</button>' +
-            '<button type="button" class="trend-tab" role="tab" data-trend="par" aria-selected="false">Par</button>' +
+          '<div class="trend-head-actions">' +
+            '<div class="trend-zoom" role="group" aria-label="Chart zoom">' +
+              '<button type="button" class="trend-zoom-btn" id="trend-zoom-out" aria-label="Zoom out">&minus;</button>' +
+              '<span class="trend-zoom-label" id="trend-zoom-label">10 nights</span>' +
+              '<button type="button" class="trend-zoom-btn" id="trend-zoom-in" aria-label="Zoom in">+</button>' +
+            '</div>' +
+            '<div class="trend-tabs" role="tablist" aria-label="Trend chart metric">' +
+              '<button type="button" class="trend-tab" role="tab" data-trend="points" aria-selected="true">Points</button>' +
+              '<button type="button" class="trend-tab" role="tab" data-trend="knockouts" aria-selected="false">KOs</button>' +
+              '<button type="button" class="trend-tab" role="tab" data-trend="wins" aria-selected="false">1st Places</button>' +
+              '<button type="button" class="trend-tab" role="tab" data-trend="par" aria-selected="false">Par</button>' +
+            '</div>' +
           '</div>' +
         '</div>' +
         '<div class="trend-chart-wrap"><canvas id="sbg-trend-chart" aria-label="Week to week season trend chart"></canvas></div>' +
@@ -968,7 +1048,25 @@
     if (!matches || !matches.length || typeof Chart === 'undefined') return;
     trendData = buildTrendData(matches);
     trendMode = 'points';
+    trendZoom = 0;
     renderTrendChart('points');
+
+    var zoomIn = document.getElementById('trend-zoom-in');
+    var zoomOut = document.getElementById('trend-zoom-out');
+    if (zoomIn) {
+      zoomIn.addEventListener('click', function () {
+        if (trendZoom >= TREND_ZOOM_MAX) return;
+        trendZoom++;
+        applyTrendZoom();
+      });
+    }
+    if (zoomOut) {
+      zoomOut.addEventListener('click', function () {
+        if (trendZoom <= 0) return;
+        trendZoom--;
+        applyTrendZoom();
+      });
+    }
 
     var tabs = document.querySelectorAll('.trend-tab[data-trend]');
     tabs.forEach(function (btn) {
