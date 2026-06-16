@@ -632,6 +632,278 @@
     '</details>';
   }
 
+  /* ---------- week-to-week trend charts (Chart.js) ---------- */
+  var trendChart = null;
+  var trendData = null;
+  var trendMode = 'points';
+
+  var TREND_MODES = {
+    points: {
+      key: 'points',
+      btn: 'Points',
+      panelClass: 'trend-panel--points',
+      accent: '#3fa363',
+      grid: 'rgba(63,163,99,0.14)',
+      zero: 'rgba(63,163,99,0.35)',
+      title: 'Season points after each night',
+      leaderLabel: 'points',
+      dir: 'desc',
+      format: function (v) { return num(v).toLocaleString(); }
+    },
+    knockouts: {
+      key: 'knockouts',
+      btn: 'KOs',
+      panelClass: 'trend-panel--kos',
+      accent: '#8f1010',
+      grid: 'rgba(143,16,16,0.16)',
+      zero: 'rgba(224,83,58,0.4)',
+      title: 'Total knockouts after each night',
+      leaderLabel: 'KOs',
+      dir: 'desc',
+      format: function (v) { return num(v).toLocaleString(); }
+    },
+    wins: {
+      key: 'wins',
+      btn: '1st Places',
+      panelClass: 'trend-panel--wins',
+      accent: '#e3b341',
+      grid: 'rgba(227,179,65,0.14)',
+      zero: 'rgba(227,179,65,0.35)',
+      title: 'First place wins after each night',
+      leaderLabel: 'wins',
+      dir: 'desc',
+      format: function (v) { return String(num(v)); }
+    },
+    par: {
+      key: 'par',
+      btn: 'Par',
+      panelClass: 'trend-panel--par',
+      accent: '#6a8fa8',
+      grid: 'rgba(136,168,190,0.22)',
+      zero: 'rgba(158,196,220,0.55)',
+      title: 'Cumulative strokes vs par (lower is better)',
+      leaderLabel: 'vs par',
+      dir: 'asc',
+      format: function (v) { return signed(num(v)); },
+      stepped: true
+    }
+  };
+
+  function hexToRgba(hex, alpha) {
+    var h = String(hex || '#888').replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    var r = parseInt(h.slice(0, 2), 16);
+    var g = parseInt(h.slice(2, 4), 16);
+    var b = parseInt(h.slice(4, 6), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  function buildTrendData(matches) {
+    var labels = (matches || []).map(function (m) {
+      return m.label ? m.label + ' \u00b7 ' + m.date : m.date;
+    });
+    var ever = {};
+    (matches || []).forEach(function (m) {
+      (m.results || []).forEach(function (r) { ever[r.player] = true; });
+    });
+
+    var series = {};
+    var cum = {};
+    Object.keys(ever).forEach(function (slug) {
+      series[slug] = { points: [], knockouts: [], wins: [], par: [] };
+      cum[slug] = freshStanding(slug);
+    });
+
+    (matches || []).forEach(function (m) {
+      var night = {};
+      (m.results || []).forEach(function (r) { night[r.player] = r; });
+      Object.keys(series).forEach(function (slug) {
+        if (night[slug]) {
+          applyResult(cum[slug], night[slug]);
+          series[slug].points.push(cum[slug].points);
+          series[slug].knockouts.push(cum[slug].knockouts);
+          series[slug].wins.push(cum[slug].wins);
+          series[slug].par.push(cum[slug].parDelta);
+        } else {
+          series[slug].points.push(null);
+          series[slug].knockouts.push(null);
+          series[slug].wins.push(null);
+          series[slug].par.push(null);
+        }
+      });
+    });
+
+    return { labels: labels, series: series };
+  }
+
+  function trendLeader(modeCfg) {
+    if (!trendData || !trendData.labels.length) return null;
+    var key = modeCfg.key;
+    var last = trendData.labels.length - 1;
+    var best = null;
+    Object.keys(trendData.series).forEach(function (slug) {
+      var v = trendData.series[slug][key][last];
+      if (v == null) return;
+      if (!best || (modeCfg.dir === 'desc' ? v > best.val : v < best.val)) {
+        best = { slug: slug, val: v };
+      }
+    });
+    return best;
+  }
+
+  function updateTrendLead(mode) {
+    var lead = document.getElementById('trend-lead');
+    var panel = document.getElementById('trend-panel');
+    if (!lead || !panel) return;
+    var cfg = TREND_MODES[mode];
+    panel.className = 'trend-panel ' + cfg.panelClass;
+    var top = trendLeader(cfg);
+    if (!top) {
+      lead.textContent = cfg.title + '. Lines appear once nights are logged.';
+      return;
+    }
+    lead.innerHTML = '<b>' + esc(p(top.slug).name) + '</b> leads with ' +
+      esc(cfg.format(top.val)) + ' ' + esc(cfg.leaderLabel) + ' after the latest night.';
+  }
+
+  function buildTrendDatasets(mode) {
+    var cfg = TREND_MODES[mode];
+    return Object.keys(trendData.series).map(function (slug) {
+      var pl = p(slug);
+      return {
+        label: pl.name,
+        data: trendData.series[slug][cfg.key],
+        borderColor: pl.color,
+        backgroundColor: hexToRgba(pl.color, 0.1),
+        borderWidth: 2.5,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: pl.color,
+        pointBorderColor: '#0b150f',
+        pointBorderWidth: 1,
+        spanGaps: false,
+        tension: cfg.stepped ? 0 : 0.28,
+        stepped: cfg.stepped ? 'before' : false
+      };
+    });
+  }
+
+  function renderTrendChart(mode) {
+    if (typeof Chart === 'undefined' || !trendData) return;
+    var canvas = document.getElementById('sbg-trend-chart');
+    if (!canvas) return;
+    var cfg = TREND_MODES[mode];
+    if (trendChart) {
+      trendChart.destroy();
+      trendChart = null;
+    }
+
+    var gridHeavy = mode === 'par';
+    trendChart = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels: trendData.labels,
+        datasets: buildTrendDatasets(mode)
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              color: '#89a195',
+              boxWidth: 10,
+              boxHeight: 10,
+              padding: 14,
+              font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 11 }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(11,21,15,0.94)',
+            borderColor: cfg.accent,
+            borderWidth: 1,
+            titleFont: { family: 'Arial Narrow, Helvetica Neue, Arial, sans-serif', size: 14 },
+            bodyFont: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 12 },
+            callbacks: {
+              label: function (ctx) {
+                if (ctx.parsed.y == null) return ctx.dataset.label + ': no show';
+                return ctx.dataset.label + ': ' + cfg.format(ctx.parsed.y);
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            ticks: { color: '#7d9286', font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 10 } },
+            grid: {
+              color: cfg.grid,
+              lineWidth: gridHeavy ? 1 : 1,
+              drawTicks: true
+            },
+            border: { color: 'rgba(35,64,47,0.8)' }
+          },
+          y: {
+            ticks: {
+              color: '#7d9286',
+              font: { family: 'ui-monospace, Menlo, Consolas, monospace', size: 10 },
+              callback: function (v) { return cfg.key === 'par' ? signed(v) : v; }
+            },
+            grid: {
+              color: function (ctx) {
+                if (ctx.tick.value === 0) return cfg.zero;
+                return cfg.grid;
+              },
+              lineWidth: function (ctx) {
+                if (ctx.tick.value === 0) return gridHeavy ? 2 : 1.5;
+                return gridHeavy ? 1.25 : 1;
+              }
+            },
+            border: { color: 'rgba(35,64,47,0.8)' }
+          }
+        }
+      }
+    });
+    updateTrendLead(mode);
+  }
+
+  function renderTrendSection() {
+    return '<div class="eyebrow">Week to Week</div>' +
+      '<section class="trend-panel trend-panel--points" id="trend-panel">' +
+        '<div class="trend-head">' +
+          '<p class="trend-lead" id="trend-lead">Season trends after each Monday night.</p>' +
+          '<div class="trend-tabs" role="tablist" aria-label="Trend chart metric">' +
+            '<button type="button" class="trend-tab" role="tab" data-trend="points" aria-selected="true">Points</button>' +
+            '<button type="button" class="trend-tab" role="tab" data-trend="knockouts" aria-selected="false">KOs</button>' +
+            '<button type="button" class="trend-tab" role="tab" data-trend="wins" aria-selected="false">1st Places</button>' +
+            '<button type="button" class="trend-tab" role="tab" data-trend="par" aria-selected="false">Par</button>' +
+          '</div>' +
+        '</div>' +
+        '<div class="trend-chart-wrap"><canvas id="sbg-trend-chart" aria-label="Week to week season trend chart"></canvas></div>' +
+      '</section>';
+  }
+
+  function initTrendCharts(matches) {
+    if (!matches || !matches.length || typeof Chart === 'undefined') return;
+    trendData = buildTrendData(matches);
+    trendMode = 'points';
+    renderTrendChart('points');
+
+    var tabs = document.querySelectorAll('.trend-tab[data-trend]');
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var mode = btn.getAttribute('data-trend');
+        if (!TREND_MODES[mode] || mode === trendMode) return;
+        trendMode = mode;
+        tabs.forEach(function (b) {
+          b.setAttribute('aria-selected', b === btn ? 'true' : 'false');
+        });
+        renderTrendChart(mode);
+      });
+    });
+  }
+
   /* ---------- Season 1 render ---------- */
   function renderS1(data, c) {
     if (!data.matches || !data.matches.length) {
@@ -664,6 +936,8 @@
         '</div>' +
       '</section>';
     }
+
+    html += renderTrendSection();
 
     // ball legend
     html += '<div class="legend">' +
@@ -832,6 +1106,7 @@
       setMode(getMode());
       initMedia();
       initPortraitLightbox();
+      initTrendCharts(s1.matches);
     })
     .catch(fail);
 })();
