@@ -522,6 +522,65 @@
     });
   }
 
+  function renderMatchVideo(m) {
+    var id = youtubeVideoId(m.video);
+    if (!id) return '';
+    var label = m.label || m.date || 'Match replay';
+    return '<div class="match-actions">' +
+      '<button type="button" class="match-video-btn" data-video-id="' + esc(id) + '" data-video-label="' + esc(label) + '">' +
+      '&#9654; Video</button></div>';
+  }
+
+  function youtubeVideoId(url) {
+    if (!url) return null;
+    var s = String(url);
+    var m = s.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+    if (m) return m[1];
+    return /^[\w-]{11}$/.test(s) ? s : null;
+  }
+
+  function initVideoLightbox() {
+    var lb = document.getElementById('video-lightbox');
+    if (!lb) return;
+    var frame = document.getElementById('video-frame');
+    var cap = document.getElementById('video-lightbox-cap');
+    var closeBtn = lb.querySelector('.lightbox-close');
+    if (!frame) return;
+
+    function closeVideo() {
+      lb.hidden = true;
+      lb.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('lightbox-open');
+      frame.removeAttribute('src');
+    }
+
+    function openVideo(id, label) {
+      frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(id) + '?autoplay=1&rel=0';
+      if (cap) cap.textContent = label;
+      lb.hidden = false;
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      closeBtn.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+      var btn = e.target.closest('.match-video-btn');
+      if (!btn) return;
+      openVideo(btn.getAttribute('data-video-id'), btn.getAttribute('data-video-label') || 'Match replay');
+    });
+
+    lb.addEventListener('click', function (e) {
+      if (e.target === frame) return;
+      closeVideo();
+    });
+
+    closeBtn.addEventListener('click', closeVideo);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !lb.hidden) closeVideo();
+    });
+  }
+
   function initPortraitLightbox() {
     var lb = document.getElementById('portrait-lightbox');
     if (!lb) return;
@@ -1224,6 +1283,7 @@
       html += '<div class="match">' +
         '<div class="match-head"><span class="d">' + esc(m.label || m.date) + '</span>' +
           '<span class="c">' + esc(m.date) + (meta ? ' \u00b7 ' + esc(meta) : '') + '</span></div>' +
+        renderMatchVideo(m) +
         (m.image ? '<div class="match-art"><img src="' + esc(m.image) + '" alt="" loading="lazy"></div>' : '') +
         '<div class="tbl-scroll"><table>' +
           '<thead><tr><th>#</th><th>Player</th><th class="num">Points</th><th class="num">Holes Won</th>' +
@@ -1318,6 +1378,7 @@
       setMode(getMode());
       initMedia();
       initPortraitLightbox();
+      initVideoLightbox();
       initTrendCharts(s1.matches);
     })
     .catch(fail);

@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Jun 16, 2026 · evening PT",
+  "updated": "Jun 23, 2026 · evening PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -46,6 +46,24 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "rogue",       "place": 7, "score": 3690, "holesWon": 3,  "holesDone": 37, "parDelta": -3, "knockouts": 97 }
       ],
       "note": "Princegames had the win lined up until Matticus stepped into the mine lane. Cunder snuck through and stole the night."
+    },
+    {
+      "date": "Mon Jun 22",
+      "label": "Night 3",
+      "par": 5,
+      "holes": 45,
+      "image": "assets/img/nights/night-3.png",
+      "video": "https://youtu.be/EjJkM-lY-Ts",
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 3930, "holesWon": 13, "holesDone": 42, "parDelta": 14, "knockouts": 66 },
+        { "player": "cunder",      "place": 2, "score": 3890, "holesWon": 6,  "holesDone": 44, "parDelta": 7,  "knockouts": 94 },
+        { "player": "matticus",    "place": 3, "score": 3770, "holesWon": 1,  "holesDone": 36, "parDelta": 23, "knockouts": 136 },
+        { "player": "jester",      "place": 4, "score": 3610, "holesWon": 6,  "holesDone": 38, "parDelta": 18, "knockouts": 84 },
+        { "player": "rogue",       "place": 5, "score": 3510, "holesWon": 7,  "holesDone": 39, "parDelta": 2,  "knockouts": 85 },
+        { "player": "princegames", "place": 6, "score": 3510, "holesWon": 6,  "holesDone": 41, "parDelta": 19, "knockouts": 102 },
+        { "player": "slack",       "place": 7, "score": 2010, "holesWon": 2,  "holesDone": 12, "parDelta": 2,  "knockouts": 19 }
+      ],
+      "note": "Sandman put in the work and walked away with absolute dominance: thirteen holes won and the gold. Princegames dug in at the end and refused to let Matticus take the lead. Déjà vu from Night 2, only this time Jester played the chaos card and handed Sandman the hard W. Cunder said it best in the DMs. Toilet Duck sat this one out."
     }
   ]
 }
