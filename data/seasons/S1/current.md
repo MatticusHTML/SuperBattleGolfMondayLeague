@@ -61,9 +61,10 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "jester",      "place": 4, "score": 3610, "holesWon": 6,  "holesDone": 38, "parDelta": 18, "knockouts": 84 },
         { "player": "rogue",       "place": 5, "score": 3510, "holesWon": 7,  "holesDone": 39, "parDelta": 2,  "knockouts": 85 },
         { "player": "princegames", "place": 6, "score": 3510, "holesWon": 6,  "holesDone": 41, "parDelta": 19, "knockouts": 102 },
-        { "player": "slack",       "place": 7, "score": 2010, "holesWon": 2,  "holesDone": 12, "parDelta": 2,  "knockouts": 19 }
+        { "player": "toiletduck",  "place": 7, "score": 3060, "holesWon": 4,  "holesDone": 34, "parDelta": 10, "knockouts": 2 },
+        { "player": "slack",       "place": 8, "score": 2010, "holesWon": 2,  "holesDone": 12, "parDelta": 2,  "knockouts": 19 }
       ],
-      "note": "Sandman put in the work and walked away with absolute dominance: thirteen holes won and the gold. Princegames dug in at the end and refused to let Matticus take the lead. Déjà vu from Night 2, only this time Jester played the chaos card and handed Sandman the hard W. Cunder said it best in the DMs. Toilet Duck sat this one out."
+      "note": "Sandman put in the work and walked away with absolute dominance: thirteen holes won and the gold. Princegames dug in at the end and refused to let Matticus take the lead. Déjà vu from Night 2, only this time Jester played the chaos card and handed Sandman the hard W. Cunder said it best in the DMs. Toilet Duck had to bail on hole 37, but his board froze right there: 3060 and done."
     }
   ]
 }
