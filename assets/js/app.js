@@ -51,6 +51,7 @@
 
   var PLAYERS = {};
   var skyTimer = null;
+  var glitchTimers = [];
   var fadeRaf = null;
   var trackBusy = false;
   var FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2000;
@@ -232,9 +233,43 @@
     next();
   }
 
+  function stopTechnicalGlitch() {
+    glitchTimers.forEach(function (id) { clearTimeout(id); });
+    glitchTimers = [];
+    document.querySelectorAll('.match-scoreboard--glitch.is-glitching').forEach(function (board) {
+      board.classList.remove('is-glitching');
+    });
+  }
+
+  function scheduleTechnicalGlitch() {
+    stopTechnicalGlitch();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (getMode() !== 'fancy') return;
+    document.querySelectorAll('.match-scoreboard--glitch').forEach(function (board) {
+      function schedule() {
+        var waitId = setTimeout(function () {
+          if (getMode() !== 'fancy') return;
+          board.classList.add('is-glitching');
+          var endId = setTimeout(function () {
+            board.classList.remove('is-glitching');
+            if (getMode() === 'fancy') schedule();
+          }, 1000);
+          glitchTimers.push(endId);
+        }, 5000 + Math.random() * 5000);
+        glitchTimers.push(waitId);
+      }
+      schedule();
+    });
+  }
+
   function refreshFx() {
-    if (getMode() === 'fancy') scheduleSkyBall();
-    else stopSkyBalls();
+    if (getMode() === 'fancy') {
+      scheduleSkyBall();
+      scheduleTechnicalGlitch();
+    } else {
+      stopSkyBalls();
+      stopTechnicalGlitch();
+    }
   }
 
   /* ---------- music player ---------- */
@@ -1280,12 +1315,17 @@
       });
       var meta = [m.course, m.par ? 'Par ' + m.par : '', m.holes ? m.holes + ' holes' : '']
         .filter(Boolean).join(' \u00b7 ');
-      html += '<div class="match">' +
+      var techTag = m.technicalError
+        ? '<span class="match-tag match-tag--error" title="Final score screen missing. Stats reconstructed from memory.">Technical error</span>'
+        : '';
+      var scoreCls = m.technicalError ? 'tbl-scroll match-scoreboard match-scoreboard--glitch' : 'tbl-scroll';
+      html += '<div class="match' + (m.technicalError ? ' match--technical' : '') + '">' +
         '<div class="match-head"><span class="d">' + esc(m.label || m.date) + '</span>' +
+          techTag +
           '<span class="c">' + esc(m.date) + (meta ? ' \u00b7 ' + esc(meta) : '') + '</span></div>' +
         renderMatchVideo(m) +
-        (m.image ? '<div class="match-art"><img src="' + esc(m.image) + '" alt="" loading="lazy"></div>' : '') +
-        '<div class="tbl-scroll"><table>' +
+        (m.image ? '<div class="match-art' + (m.imageCrop ? ' match-art--crop' : '') + '"><img src="' + esc(m.image) + '" alt="" loading="lazy"></div>' : '') +
+        '<div class="' + scoreCls + '"><table>' +
           '<thead><tr><th>#</th><th>Player</th><th class="num">Points</th><th class="num">Holes Won</th>' +
           '<th class="num">Done</th><th class="num">Par</th><th class="num">KOs</th></tr></thead>' +
           '<tbody>' + body + '</tbody></table></div>' +
