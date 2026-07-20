@@ -109,6 +109,9 @@ Ties: if two players share a place, give them the same `place` number. The engin
   portraits arrive, drop them in (for example `assets/img/players/rogue.png`) and set
   `"avatar": "assets/img/players/rogue.png"`.
 
+Known Steam aliases (map to the roster slug, never create a new player):
+- `Aaron` = `sandman`
+
 The roster is read fully and scales to any number of players. Add more players by adding
 rows here. Nothing is hard-coded to 8.
 

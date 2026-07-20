@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Jun 30, 2026 · morning PT",
+  "updated": "Jul 20, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -85,6 +85,23 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "matticus",    "place": 7, "score": 4050, "holesWon": 2,  "holesDone": 36, "parDelta": 25, "knockouts": 145 }
       ],
       "note": "A high-scoring slugfest. Princegames came out swinging with roughly 120 hits, the most aggressive round of his life, and edged Jester by a heartbreaking five points: 4665 to 4660. Matticus brought the chaos as always but landed dead last for his trouble. The lasting image: at the very end Cunder led a full attack on Jester, just to make the runner-up sweat one more time."
+    },
+    {
+      "date": "Mon Jul 13",
+      "label": "Night 5",
+      "course": "Jungle",
+      "par": 5,
+      "holes": 45,
+      "championImage": "assets/img/players/cunder-champion.png",
+      "results": [
+        { "player": "cunder",      "place": 1, "score": 3640, "holesWon": 11, "holesDone": 40, "parDelta": 12,  "knockouts": 43 },
+        { "player": "jester",      "place": 2, "score": 3560, "holesWon": 7,  "holesDone": 43, "parDelta": 13,  "knockouts": 70 },
+        { "player": "princegames", "place": 3, "score": 3510, "holesWon": 8,  "holesDone": 43, "parDelta": -2,  "knockouts": 79 },
+        { "player": "sandman",     "place": 4, "score": 3485, "holesWon": 5,  "holesDone": 43, "parDelta": -4,  "knockouts": 67 },
+        { "player": "toiletduck",  "place": 5, "score": 3415, "holesWon": 9,  "holesDone": 40, "parDelta": 17,  "knockouts": 60 },
+        { "player": "rogue",       "place": 6, "score": 3325, "holesWon": 5,  "holesDone": 38, "parDelta": -16, "knockouts": 90 }
+      ],
+      "note": "Prince was up 300 and getting dogpiled, so he ice-gunned four of them on the 3rd-to-last hole. One item flipped the lobby. Cunder rode the chaos from 5th to gold after joining late. Rogue brought the violence and still finished last."
     }
   ]
 }
