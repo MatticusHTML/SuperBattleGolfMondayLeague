@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Jul 20, 2026 · afternoon PT",
+  "updated": "Jul 21, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -102,6 +102,25 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "rogue",       "place": 6, "score": 3325, "holesWon": 5,  "holesDone": 38, "parDelta": -16, "knockouts": 90 }
       ],
       "note": "Prince was up 300 and getting dogpiled, so he ice-gunned four of them on the 3rd-to-last hole. One item flipped the lobby. Cunder rode the chaos from 5th to gold after joining late. Rogue brought the violence and still finished last."
+    },
+    {
+      "date": "Mon Jul 20",
+      "label": "Night 6",
+      "course": "Crosswalk",
+      "par": 5,
+      "holes": 45,
+      "image": "assets/img/nights/night-6.png",
+      "video": "https://youtu.be/tb-Iy0Xq1pQ",
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 3700, "holesWon": 9, "holesDone": 41, "parDelta": -4,  "knockouts": 84 },
+        { "player": "rogue",       "place": 2, "score": 3585, "holesWon": 9, "holesDone": 40, "parDelta": -5,  "knockouts": 82 },
+        { "player": "cunder",      "place": 3, "score": 3495, "holesWon": 4, "holesDone": 42, "parDelta": 18,  "knockouts": 86 },
+        { "player": "princegames", "place": 4, "score": 3465, "holesWon": 6, "holesDone": 41, "parDelta": 10,  "knockouts": 64 },
+        { "player": "jester",      "place": 5, "score": 3425, "holesWon": 7, "holesDone": 40, "parDelta": 6,   "knockouts": 61 },
+        { "player": "matticus",    "place": 6, "score": 3255, "holesWon": 1, "holesDone": 30, "parDelta": 35,  "knockouts": 154 },
+        { "player": "toiletduck",  "place": 7, "score": 3240, "holesWon": 2, "holesDone": 36, "parDelta": 4,   "knockouts": 68 },
+        { "player": "slack",       "place": 8, "score": 2480, "holesWon": 7, "holesDone": 28, "parDelta": 10,  "knockouts": 43 }
+      ]
     }
   ]
 }
