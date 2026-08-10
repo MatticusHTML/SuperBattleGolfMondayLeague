@@ -27,6 +27,7 @@
     players: 'data/players.json',
     s1: 'data/seasons/S1/current.md',
     s0: 'data/seasons/S0/current.md',
+    team: 'data/seasons/TEAM/current.md',
     league: 'data/league/current.md'
   };
 
@@ -38,6 +39,7 @@
     seasonSelect: document.getElementById('season-select'),
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
+    viewTeam: document.getElementById('view-team'),
     footerNote: document.getElementById('footer-note'),
     sky: document.getElementById('sky-balls'),
     mediaPlay: document.getElementById('media-play'),
@@ -1374,12 +1376,58 @@
     return html;
   }
 
+  /* ---------- Team Matches render (fun nights, no season stakes) ---------- */
+  function renderTeam(data) {
+    if (!data.matches || !data.matches.length) {
+      return '<div class="empty"><div class="big">No Team Nights Yet</div>' +
+        '<p>Team mode nights are just for fun and never touch Season 0 or Season 1. ' +
+        'Log one in data/seasons/TEAM/current.md and it shows up here.</p></div>';
+    }
+
+    var html = '<div class="eyebrow">Team Matches &middot; fun nights, no season points</div>';
+
+    data.matches.slice().reverse().forEach(function (m) {
+      var teams = m.teams || [];
+      var maxScore = teams.reduce(function (mx, t) { return Math.max(mx, num(t.score)); }, -Infinity);
+      var meta = [m.course, m.par ? 'Par ' + m.par : '', m.holes ? m.holes + ' holes' : '']
+        .filter(Boolean).join(' · ');
+
+      var teamsHtml = teams.map(function (t) {
+        var win = num(t.score) === maxScore;
+        var players = (t.players || []).slice().sort(function (a, b) { return num(b.score) - num(a.score); });
+        var rows = players.map(function (pl) {
+          var plr = p(pl.player);
+          return '<div class="team-player">' +
+            '<span class="tp-name" style="--pc:' + esc(plr.color) + '">' + esc(plr.name) + '</span>' +
+            '<span class="tp-score">' + num(pl.score).toLocaleString() + '</span></div>';
+        }).join('');
+        return '<div class="team-box' + (win ? ' team-box--win' : '') + '" style="--tc:' + esc(t.color || '#7a8a7f') + '">' +
+          '<div class="team-box-head">' +
+            '<span class="team-name">' + (win ? '&#127942; ' : '') + esc(t.name) + '</span>' +
+            '<span class="team-score">' + num(t.score) + '</span>' +
+          '</div>' +
+          '<div class="team-players">' + rows + '</div>' +
+        '</div>';
+      }).join('');
+
+      html += '<div class="match team-match">' +
+        '<div class="match-head"><span class="d">' + esc(m.label || m.date) + '</span>' +
+          '<span class="c">' + esc(m.date) + (meta ? ' · ' + esc(meta) : '') + '</span></div>' +
+        '<div class="team-teams">' + teamsHtml + '</div>' +
+        (m.note ? '<div class="match-note">' + esc(m.note) + '</div>' : '') +
+      '</div>';
+    });
+
+    return html;
+  }
+
   /* ---------- season switching ---------- */
-  function showSeason(n) {
-    var on1 = n === 1;
-    el.viewS1.hidden = !on1;
-    el.viewS0.hidden = on1;
-    if (el.seasonSelect) el.seasonSelect.value = String(on1 ? 1 : 0);
+  function showSeason(key) {
+    var k = String(key);
+    el.viewS1.hidden = k !== '1';
+    el.viewS0.hidden = k !== '0';
+    el.viewTeam.hidden = k !== 'team';
+    if (el.seasonSelect) el.seasonSelect.value = k;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -1391,9 +1439,9 @@
     el.updated.textContent = '';
   }
 
-  Promise.all([load(FILES.players), load(FILES.s1), load(FILES.s0)])
+  Promise.all([load(FILES.players), load(FILES.s1), load(FILES.s0), load(FILES.team)])
     .then(function (res) {
-      var playersData = res[0], s1 = res[1], s0 = res[2];
+      var playersData = res[0], s1 = res[1], s0 = res[2], team = res[3];
       (playersData.players || []).forEach(function (pl) { PLAYERS[pl.slug] = pl; });
 
       el.updated.textContent = s1.updated ? 'Updated ' + s1.updated : '';
@@ -1401,6 +1449,7 @@
       var c = computeS1(s1);
       el.viewS1.innerHTML = renderS1(s1, c);
       el.viewS0.innerHTML = renderS0(s0);
+      el.viewTeam.innerHTML = renderTeam(team);
 
       // optional league note in footer
       load(FILES.league).then(function (lg) {
@@ -1409,7 +1458,7 @@
 
       if (el.seasonSelect) {
         el.seasonSelect.addEventListener('change', function () {
-          showSeason(parseInt(el.seasonSelect.value, 10));
+          showSeason(el.seasonSelect.value);
         });
       }
       el.pillFancy.addEventListener('click', function () { setMode('fancy'); });

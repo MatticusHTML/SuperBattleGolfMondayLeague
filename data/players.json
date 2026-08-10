@@ -7,6 +7,7 @@
     { "slug": "cunder",      "name": "Cunder",      "handle": "CunderThock",         "color": "#ffc800", "avatar": "assets/img/players/cunder.png" },
     { "slug": "toiletduck",  "name": "Toilet Duck", "handle": "SnSoldier",           "color": "#3dd6d0", "avatar": "assets/img/players/toiletduck.png" },
     { "slug": "jester",      "name": "Jester",      "handle": "master-jester",       "color": "#9e6b42", "avatar": "assets/img/players/jester.png" },
-    { "slug": "slack",       "name": "Slack",       "handle": "slackandlack",        "color": "#d63d4f", "avatar": "assets/img/players/slack.png" }
+    { "slug": "slack",       "name": "Slack",       "handle": "slackandlack",        "color": "#d63d4f", "avatar": "assets/img/players/slack.png" },
+    { "slug": "spacemanjosh","name": "SpacemanJosh","handle": "SpacemanJosh",        "color": "#8a5cf6", "avatar": null }
   ]
 }

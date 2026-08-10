@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Jul 21, 2026 · afternoon PT",
+  "updated": "Aug 10, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -121,6 +121,21 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "toiletduck",  "place": 7, "score": 3240, "holesWon": 2, "holesDone": 36, "parDelta": 4,   "knockouts": 68 },
         { "player": "slack",       "place": 8, "score": 2480, "holesWon": 7, "holesDone": 28, "parDelta": 10,  "knockouts": 43 }
       ]
+    },
+    {
+      "date": "Mon Aug 3",
+      "label": "Night 7",
+      "holes": 45,
+      "results": [
+        { "player": "jester",      "place": 1, "score": 3680, "holesWon": 12, "holesDone": 40, "parDelta": 3,  "knockouts": 48 },
+        { "player": "cunder",      "place": 2, "score": 3500, "holesWon": 10, "holesDone": 40, "parDelta": 9,  "knockouts": 87 },
+        { "player": "sandman",     "place": 3, "score": 3435, "holesWon": 11, "holesDone": 36, "parDelta": 8,  "knockouts": 70 },
+        { "player": "rogue",       "place": 4, "score": 3335, "holesWon": 5,  "holesDone": 39, "parDelta": 14, "knockouts": 82 },
+        { "player": "toiletduck",  "place": 5, "score": 3230, "holesWon": 3,  "holesDone": 37, "parDelta": 23, "knockouts": 64 },
+        { "player": "matticus",    "place": 6, "score": 3155, "holesWon": 1,  "holesDone": 34, "parDelta": 20, "knockouts": 138 },
+        { "player": "princegames", "place": 7, "score": 3100, "holesWon": 3,  "holesDone": 21, "parDelta": 1,  "knockouts": 57 }
+      ],
+      "note": "Jester ran wire to wire behind twelve holes won, no drama needed. Sandman disconnected right before the final horn and still held on for third, his 3435 was already in the bank. Matticus stacked 138 knockouts and still finished second to last, the most Matticus stat line possible."
     }
   ]
 }

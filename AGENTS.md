@@ -30,6 +30,7 @@ data/
   seasons/
     S0/current.md              Season 0 archive (winner only)
     S1/current.md              Season 1 live (full stats)
+    TEAM/current.md            Team Matches (fun nights, no season stakes)
 ```
 
 ## Seasons
@@ -38,6 +39,9 @@ data/
   won each Monday. Backfill from memory. Lives in `data/seasons/S0/current.md`.
 - **Season 1: Monday League.** The live full-stat season. Night 1 is the first match.
   Lives in `data/seasons/S1/current.md`.
+- **Team Matches: Fun Nights.** Team mode games, purely for fun. They never feed Season
+  0 or Season 1 standings, the ball system, or anyone's season points. Selectable from
+  the same season dropdown. Lives in `data/seasons/TEAM/current.md`.
 
 ## The four balls
 
@@ -95,6 +99,41 @@ Ties: if two players share a place, give them the same `place` number. The engin
 ```
 
 `winner` can be a single slug or an array of slugs for a tie. That is all S0 needs.
+
+## Team Matches schema (fun nights, no season stakes)
+
+Team mode results screens track far less than a real Monday: no holes won, par, or
+knockouts, just each player's `score`. The engine works out which team won on its own
+(highest team `score`), so never set a "winner" flag by hand.
+
+```json
+{
+  "date": "Mon Jul 27",       // short human date
+  "label": "Team Night 1",    // optional headline label
+  "course": "Taiga",          // optional
+  "par": 4,                   // optional
+  "holes": 45,                // optional
+  "teams": [
+    {
+      "name": "Red Team",
+      "color": "#c23b3b",     // hex used for that team's header tint
+      "score": 26,            // the trophy number from the results screen
+      "players": [
+        { "player": "cunder", "score": 3230 }
+      ]
+    }
+  ],
+  "note": "optional one-liner"
+}
+```
+
+`player` must match a slug in `players.json`, same as Season 1. Guests who show up
+for a team night only (no regular roster slug yet) still get added to `players.json`
+so their name and color render properly; it costs nothing since they simply never
+appear in any Season 0/1 match `results` array and can't affect those standings.
+
+The "+10 / +105" rank-change number and the small ping number shown per player on the
+in-game results screen are not tracked. Only `score` matters here.
 
 ## players.json schema
 
