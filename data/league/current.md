@@ -5,6 +5,6 @@ The site still works fine if this file is missing.
 
 ```json
 {
-  "note": "The official record of the Monday night Super Battle Golf league."
+  "note": "The official record of the Monday night Super Battle Golf league. Eight nights deep and counting."
 }
 ```
