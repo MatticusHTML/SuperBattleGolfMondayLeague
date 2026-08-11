@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Aug 10, 2026 · afternoon PT",
+  "updated": "Aug 11, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -126,6 +126,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
       "date": "Mon Aug 3",
       "label": "Night 7",
       "holes": 45,
+      "image": "assets/img/nights/night-7.png",
       "results": [
         { "player": "jester",      "place": 1, "score": 3680, "holesWon": 12, "holesDone": 40, "parDelta": 3,  "knockouts": 48 },
         { "player": "cunder",      "place": 2, "score": 3500, "holesWon": 10, "holesDone": 40, "parDelta": 9,  "knockouts": 87 },
@@ -136,6 +137,25 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "princegames", "place": 7, "score": 3100, "holesWon": 3,  "holesDone": 21, "parDelta": 1,  "knockouts": 57 }
       ],
       "note": "Jester ran wire to wire behind twelve holes won, no drama needed. Sandman disconnected right before the final horn and still held on for third, his 3435 was already in the bank. Matticus stacked 138 knockouts and still finished second to last, the most Matticus stat line possible."
+    },
+    {
+      "date": "Mon Aug 10",
+      "label": "Night 8",
+      "course": "Serpent Trail",
+      "par": 5,
+      "holes": 45,
+      "image": "assets/img/nights/night-8.png",
+      "video": "https://youtu.be/LmzXzFNH5cI",
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 3910, "holesWon": 14, "holesDone": 42, "parDelta": -7, "knockouts": 62 },
+        { "player": "cunder",      "place": 2, "score": 3675, "holesWon": 7,  "holesDone": 40, "parDelta": 16, "knockouts": 87 },
+        { "player": "rogue",       "place": 3, "score": 3640, "holesWon": 6,  "holesDone": 34, "parDelta": -6, "knockouts": 71 },
+        { "player": "princegames", "place": 4, "score": 3540, "holesWon": 7,  "holesDone": 40, "parDelta": -12,"knockouts": 82 },
+        { "player": "toiletduck",  "place": 5, "score": 3470, "holesWon": 4,  "holesDone": 38, "parDelta": 6,  "knockouts": 74 },
+        { "player": "jester",      "place": 6, "score": 3400, "holesWon": 6,  "holesDone": 41, "parDelta": 35, "knockouts": 70 },
+        { "player": "matticus",    "place": 7, "score": 3350, "holesWon": 1,  "holesDone": 32, "parDelta": 8,  "knockouts": 126 }
+      ],
+      "note": "Sandman got jumped from every angle all night and still kept sinking shots, the man was unleashed. Cunder made Matticus his personal target, so Matticus and Princegames struck up a scrappy alliance just to survive, the handshake heard round the lobby. Toilet Duck just really, really liked shooting Matticus too. Fourteen holes won and the best par in the lobby got Sandman the gold, while Matticus finished dead last for the second time this season but broke his own KO record with 126."
     }
   ]
 }
