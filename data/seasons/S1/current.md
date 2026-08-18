@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Aug 11, 2026 · afternoon PT",
+  "updated": "Aug 18, 2026 · morning PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -156,6 +156,23 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "matticus",    "place": 7, "score": 3350, "holesWon": 1,  "holesDone": 32, "parDelta": 8,  "knockouts": 126 }
       ],
       "note": "Sandman got jumped from every angle all night and still kept sinking shots, the man was unleashed. Cunder made Matticus his personal target, so Matticus and Princegames struck up a scrappy alliance just to survive, the handshake heard round the lobby. Toilet Duck just really, really liked shooting Matticus too. Fourteen holes won and the best par in the lobby got Sandman the gold, while Matticus finished dead last for the second time this season but broke his own KO record with 126."
+    },
+    {
+      "date": "Mon Aug 17",
+      "label": "Night 9",
+      "holes": 45,
+      "image": "assets/img/nights/night-9.jpg",
+      "video": "https://youtu.be/qt1hDOcfkKI",
+      "results": [
+        { "player": "princegames", "place": 1, "score": 3370, "holesWon": 10, "holesDone": 42, "parDelta": 41, "knockouts": 96 },
+        { "player": "cunder",      "place": 2, "score": 3320, "holesWon": 8,  "holesDone": 40, "parDelta": 10, "knockouts": 76 },
+        { "player": "sandman",     "place": 3, "score": 3310, "holesWon": 11, "holesDone": 39, "parDelta": 18, "knockouts": 81 },
+        { "player": "matticus",    "place": 4, "score": 3270, "holesWon": 7,  "holesDone": 40, "parDelta": 26, "knockouts": 120 },
+        { "player": "toiletduck",  "place": 5, "score": 3085, "holesWon": 4,  "holesDone": 38, "parDelta": 5,  "knockouts": 77 },
+        { "player": "rogue",       "place": 6, "score": 3055, "holesWon": 3,  "holesDone": 33, "parDelta": -3, "knockouts": 69 },
+        { "player": "jester",      "place": 7, "score": 2650, "holesWon": 2,  "holesDone": 30, "parDelta": 9,  "knockouts": 84 }
+      ],
+      "note": "Jester pulled off a late rescue, rocket-clubbing Matticus forward and clearing the enemies in his path, pure teamwork. Toilet Duck and Cunder took it personally and turned their guns on both of them for the rest of the night. Sandman, playing under his Aaron alias, was lights-out on first-place finishes most of the match. Princegames slipped clean through all the chaos and stole the win anyway."
     }
   ]
 }
