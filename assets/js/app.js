@@ -36,15 +36,19 @@
     error: document.getElementById('error'),
     pillFancy: document.getElementById('pill-fancy'),
     pillOptimized: document.getElementById('pill-optimized'),
+    pillDemon: document.getElementById('pill-demon'),
     seasonSelect: document.getElementById('season-select'),
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
     viewTeam: document.getElementById('view-team'),
     footerNote: document.getElementById('footer-note'),
     sky: document.getElementById('sky-balls'),
+    demonEmbers: document.getElementById('demon-embers'),
+    mediaPlayer: document.getElementById('media-player'),
     mediaPlay: document.getElementById('media-play'),
     mediaSkip: document.getElementById('media-skip'),
     mediaList: document.getElementById('media-list'),
+    mediaTracksWrap: document.querySelector('.drop-tracks'),
     mediaMenu: document.getElementById('media-menu'),
     mediaTrack: document.getElementById('media-track'),
     mediaVol: document.getElementById('media-vol'),
@@ -54,8 +58,11 @@
   var PLAYERS = {};
   var skyTimer = null;
   var glitchTimers = [];
+  var emberTimer = null;
   var fadeRaf = null;
   var trackBusy = false;
+  var DEMON_TRACK = { file: 'assets/audio/demon-time-soundtrack.mp3', label: 'Demon Time Mix' };
+  var preDemonState = null;
   var FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2000;
   var MODE_KEY = 'sbg-display-mode';
   var VOL_KEY = 'sbg-volume';
@@ -69,7 +76,9 @@
     { file: 'assets/audio/08-desert.mp3', label: 'Desert' },
     { file: 'assets/audio/10-desert-hurry.mp3', label: 'Desert (Hurry!)' },
     { file: 'assets/audio/11-winter.mp3', label: 'Winter' },
-    { file: 'assets/audio/13-winter-hurry.mp3', label: 'Winter (Hurry!)' }
+    { file: 'assets/audio/13-winter-hurry.mp3', label: 'Winter (Hurry!)' },
+    { file: 'assets/audio/14-attack-on-city.mp3', label: 'City' },
+    { file: 'assets/audio/15-attack-on-city-hurry.mp3', label: 'City (Hurry!)' }
   ];
   var trackIdx = 0;
   var shuffleOrder = [];
@@ -164,17 +173,24 @@
   }
 
   function getMode() {
-    return document.documentElement.classList.contains('mode-optimized') ? 'optimized' : 'fancy';
+    var c = document.documentElement.classList;
+    if (c.contains('mode-demon')) return 'demon';
+    return c.contains('mode-optimized') ? 'optimized' : 'fancy';
   }
 
   function setMode(mode) {
-    var fancy = mode !== 'optimized';
-    document.documentElement.classList.toggle('mode-fancy', fancy);
-    document.documentElement.classList.toggle('mode-optimized', !fancy);
-    el.pillFancy.setAttribute('aria-pressed', fancy);
-    el.pillOptimized.setAttribute('aria-pressed', !fancy);
-    try { localStorage.setItem(MODE_KEY, fancy ? 'fancy' : 'optimized'); } catch (e) { /* ignore */ }
+    if (mode !== 'optimized' && mode !== 'demon') mode = 'fancy';
+    var wasDemon = getMode() === 'demon';
+    document.documentElement.classList.toggle('mode-fancy', mode === 'fancy');
+    document.documentElement.classList.toggle('mode-optimized', mode === 'optimized');
+    document.documentElement.classList.toggle('mode-demon', mode === 'demon');
+    el.pillFancy.setAttribute('aria-pressed', mode === 'fancy');
+    el.pillOptimized.setAttribute('aria-pressed', mode === 'optimized');
+    if (el.pillDemon) el.pillDemon.setAttribute('aria-pressed', mode === 'demon');
+    try { localStorage.setItem(MODE_KEY, mode); } catch (e) { /* ignore */ }
     refreshFx();
+    if (mode === 'demon' && !wasDemon) enterDemonMode();
+    else if (mode !== 'demon' && wasDemon) exitDemonMode();
   }
 
   function launchSkyBall() {
@@ -264,13 +280,126 @@
     });
   }
 
+  function launchEmber() {
+    if (!el.demonEmbers || getMode() !== 'demon') return;
+    var ember = document.createElement('div');
+    var dur = 3 + Math.random() * 3;
+    var drift = -40 + Math.random() * 80;
+    var size = 3 + Math.random() * 5;
+    ember.className = 'ember';
+    ember.style.setProperty('--x', (Math.random() * 100) + 'vw');
+    ember.style.setProperty('--dur', dur + 's');
+    ember.style.setProperty('--delay', (Math.random() * 0.4) + 's');
+    ember.style.setProperty('--drift', drift + 'px');
+    ember.style.setProperty('--size', size + 'px');
+    el.demonEmbers.appendChild(ember);
+    ember.addEventListener('animationend', function () { ember.remove(); });
+  }
+
+  function stopEmbers() {
+    if (emberTimer) { clearInterval(emberTimer); emberTimer = null; }
+    if (el.demonEmbers) el.demonEmbers.innerHTML = '';
+  }
+
+  function scheduleEmbers() {
+    stopEmbers();
+    if (getMode() !== 'demon') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    emberTimer = setInterval(launchEmber, 220);
+  }
+
   function refreshFx() {
-    if (getMode() === 'fancy') {
+    var mode = getMode();
+    if (mode === 'fancy') {
       scheduleSkyBall();
       scheduleTechnicalGlitch();
     } else {
       stopSkyBalls();
       stopTechnicalGlitch();
+    }
+    if (mode === 'demon') scheduleEmbers();
+    else stopEmbers();
+  }
+
+  /* ---------- demon time: music player break-and-swap ---------- */
+  function afterGlitch(done) {
+    var fired = false;
+    function run() {
+      if (fired) return;
+      fired = true;
+      el.mediaPlayer.removeEventListener('animationend', run);
+      done();
+    }
+    el.mediaPlayer.addEventListener('animationend', run);
+    setTimeout(run, 950);
+  }
+
+  function enterDemonMode() {
+    preDemonState = {
+      trackIdx: trackIdx,
+      musicOn: musicOn,
+      shuffleOrder: shuffleOrder.slice(),
+      shufflePos: shufflePos
+    };
+    if (el.mediaSkip) el.mediaSkip.hidden = true;
+    if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = true;
+    closeTrackMenu();
+    if (!el.mediaPlayer || !el.mediaAudio) return;
+
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var wasPlaying = musicOn;
+    clearFade();
+    releaseTrackBusy();
+    trackBusy = true;
+
+    function swap() {
+      el.mediaPlayer.classList.remove('media-player--glitch');
+      el.mediaPlayer.classList.add('media-player--demon');
+      el.mediaTrack.textContent = DEMON_TRACK.label;
+      el.mediaTrack.title = DEMON_TRACK.label;
+      el.mediaAudio.loop = true;
+      el.mediaAudio.src = DEMON_TRACK.file;
+      if (wasPlaying) {
+        whenTrackReady(function () { playLoadedTrack(true, releaseTrackBusy); });
+      } else {
+        el.mediaAudio.load();
+        releaseTrackBusy();
+      }
+    }
+
+    if (reduced) {
+      swap();
+    } else {
+      el.mediaPlayer.classList.add('media-player--glitch');
+      afterGlitch(swap);
+    }
+  }
+
+  function exitDemonMode() {
+    if (el.mediaSkip) el.mediaSkip.hidden = false;
+    if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = false;
+    if (!el.mediaPlayer || !el.mediaAudio) return;
+
+    el.mediaAudio.loop = false;
+    var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    clearFade();
+    releaseTrackBusy();
+    trackBusy = true;
+
+    function swap() {
+      el.mediaPlayer.classList.remove('media-player--glitch', 'media-player--demon');
+      var resume = preDemonState || { trackIdx: 0, musicOn: false, shuffleOrder: shuffleOrder, shufflePos: shufflePos };
+      shuffleOrder = resume.shuffleOrder;
+      shufflePos = resume.shufflePos;
+      preDemonState = null;
+      loadAndPlay(resume.trackIdx, resume.musicOn, true, releaseTrackBusy);
+    }
+
+    if (reduced) {
+      swap();
+    } else {
+      el.mediaPlayer.classList.add('media-player--glitch');
+      afterGlitch(swap);
     }
   }
 
@@ -500,8 +629,20 @@
     }
 
     buildShuffleOrder();
-    trackBusy = true;
-    loadAndPlay(shuffleOrder[0], true, true, releaseTrackBusy);
+
+    if (getMode() === 'demon') {
+      if (el.mediaSkip) el.mediaSkip.hidden = true;
+      if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = true;
+      if (el.mediaPlayer) el.mediaPlayer.classList.add('media-player--demon');
+      el.mediaTrack.textContent = DEMON_TRACK.label;
+      el.mediaTrack.title = DEMON_TRACK.label;
+      el.mediaAudio.loop = true;
+      el.mediaAudio.src = DEMON_TRACK.file;
+      el.mediaAudio.load();
+    } else {
+      trackBusy = true;
+      loadAndPlay(shuffleOrder[0], true, true, releaseTrackBusy);
+    }
 
     el.mediaPlay.addEventListener('click', function () {
       if (musicOn) {
@@ -1463,6 +1604,7 @@
       }
       el.pillFancy.addEventListener('click', function () { setMode('fancy'); });
       el.pillOptimized.addEventListener('click', function () { setMode('optimized'); });
+      if (el.pillDemon) el.pillDemon.addEventListener('click', function () { setMode('demon'); });
 
       setMode(getMode());
       initMedia();

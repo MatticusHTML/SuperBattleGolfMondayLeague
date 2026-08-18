@@ -26,6 +26,14 @@
   --font-scale:1.05;
 }
 
+/* demon time theme override, everything below reads these tokens */
+.mode-demon{
+  --night:#150505;--panel:#210909;--panel-2:#2a0b0b;--line:#5c1616;
+  --fairway:#e0202a;--fairway-deep:#8f0f14;
+  --gold:#ff4d4d;--silver:#ffb3b3;--bronze:#b34a2e;
+  --text:#fbe9e9;--muted:#d08a8a;--muted-2:#a85f5f;--danger:#ff3b3b;
+}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html{-webkit-text-size-adjust:100%}
 body{
@@ -54,6 +62,23 @@ body{
   10%{opacity:.95}
   48%{left:var(--hit-x);top:var(--hit-y);opacity:.95;transform:rotate(var(--tilt))}
   100%{left:var(--end-x);top:var(--end-y);opacity:0;transform:rotate(var(--tilt-end))}
+}
+
+/* ---- demon background layer ---- */
+.mode-demon .sky-balls{display:none}
+.demon-bg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:#000;display:none}
+.mode-demon .demon-bg{display:block}
+.demon-embers{position:absolute;inset:0}
+.demon-picture{position:absolute;inset:0;background:url(../img/demon-time-bg.jpg) center/cover no-repeat;opacity:.6}
+.ember{
+  position:absolute;left:var(--x);bottom:-4%;width:var(--size);height:var(--size);border-radius:50%;
+  background:radial-gradient(circle,#fff3d6 0%,#ff9a3d 35%,rgba(224,32,20,.55) 70%,transparent 100%);
+  box-shadow:0 0 7px 2px rgba(255,100,20,.5);opacity:0;
+  animation:emberRise var(--dur) ease-in var(--delay) forwards}
+@keyframes emberRise{
+  0%{opacity:0;transform:translate(0,0) scale(.6)}
+  10%{opacity:1}
+  100%{opacity:0;transform:translate(var(--drift),-112vh) scale(1.15)}
 }
 
 /* ---- golf balls ---- */
@@ -101,6 +126,15 @@ body{
 .pill:hover{transform:translateY(-1px);border-color:var(--fairway-deep)}
 .pill[aria-pressed="true"]{color:var(--night);background:var(--fairway);border-color:var(--fairway);font-weight:600}
 .pill:focus-visible{outline:2px solid var(--fairway);outline-offset:2px}
+.pill-demon{border-color:rgba(224,32,42,.6);color:#ffb3b3;animation:demonIdlePulse 2.4s ease-in-out infinite}
+.pill-demon:hover{border-color:#ff3b3b;color:#fff}
+.pill-demon[aria-pressed="true"]{
+  color:#fff0f0;background:linear-gradient(135deg,#7a0f14,#380707);border-color:#ff2a2a;font-weight:600;
+  animation:none;box-shadow:0 0 16px 4px rgba(255,20,20,.85),0 0 34px 10px rgba(150,0,0,.5)}
+@keyframes demonIdlePulse{
+  0%,100%{box-shadow:0 0 4px 0 rgba(224,32,42,.45)}
+  50%{box-shadow:0 0 13px 3px rgba(224,32,42,.85)}
+}
 .topbar-meta{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto}
 .updated{font-family:var(--mono);font-size:calc(11px * var(--font-scale));color:var(--muted-2);white-space:nowrap;text-align:right}
 .media-player{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
@@ -114,18 +148,42 @@ body{
   color:var(--muted);font-size:calc(11px * var(--font-scale));cursor:pointer;line-height:1;
   display:grid;place-items:center;transition:transform .12s,border-color .12s,color .12s}
 .media-skip:hover{transform:translateY(-1px);border-color:var(--fairway-deep);color:var(--text)}
+.media-skip[hidden]{display:none}
 .media-list{width:32px;height:32px;flex:none;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);
   color:var(--muted);font-size:calc(14px * var(--font-scale));cursor:pointer;line-height:1;
   display:grid;place-items:center;transition:transform .12s,border-color .12s,color .12s}
 .media-list:hover{transform:translateY(-1px);border-color:var(--fairway-deep);color:var(--text)}
 .media-list[aria-expanded="true"]{color:var(--night);background:var(--fairway);border-color:var(--fairway)}
 .drop-tracks{align-self:stretch;display:flex;align-items:center}
+.drop-tracks[hidden]{display:none}
 .media-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
 .media-track{font-family:var(--mono);font-size:calc(10px * var(--font-scale));color:var(--muted);
   letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .media-vol-wrap{display:flex;align-items:center}
 .media-vol{width:100%;height:4px;accent-color:var(--fairway);cursor:pointer}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---- media player: demon time break-and-swap ---- */
+.media-player--glitch{animation:mediaGlitch .9s steps(1,end)}
+@keyframes mediaGlitch{
+  0%,100%{transform:translate(0);filter:none}
+  8%{transform:translate(-3px,1px);filter:drop-shadow(3px 0 rgba(255,0,60,.55)) drop-shadow(-3px 0 rgba(255,140,0,.5)) contrast(1.4)}
+  16%{transform:translate(3px,-1px);filter:drop-shadow(-3px 0 rgba(255,0,60,.5)) drop-shadow(3px 0 rgba(255,140,0,.46))}
+  24%{transform:translate(-2px,0);filter:invert(.12) contrast(1.8)}
+  33%{transform:translate(2px,1px);filter:none}
+  45%{transform:translate(-4px,0);filter:drop-shadow(4px 0 rgba(255,0,50,.5)) drop-shadow(-4px 0 rgba(255,160,20,.45))}
+  55%{transform:translate(1px,-1px);filter:contrast(1.6) brightness(1.3)}
+  67%{transform:translate(-1px,1px);filter:none}
+  78%{transform:translate(3px,0);filter:drop-shadow(-3px 0 rgba(255,0,60,.4)) drop-shadow(3px 0 rgba(255,140,0,.36))}
+  90%{transform:translate(-1px,0);filter:none}
+}
+.media-player--demon{
+  border-color:#ff2a2a;background:linear-gradient(135deg,rgba(70,4,4,.92),rgba(20,2,2,.96));
+  box-shadow:0 0 16px rgba(255,20,20,.3)}
+.media-player--demon .media-play{border-color:#ff2a2a;color:#ffb3b3}
+.media-player--demon .media-play[aria-pressed="true"]{background:#c81c1c;color:#fff0f0;border-color:#ff2a2a}
+.media-player--demon .media-track{color:#ff9a9a}
+.media-player--demon .media-vol{accent-color:#ff2a2a}
 
 /* ---- error + loading ---- */
 .errbar{background:rgba(224,83,58,.1);border:1px solid rgba(224,83,58,.4);border-radius:12px;
@@ -529,4 +587,7 @@ body.lightbox-open{overflow:hidden}
   .mode-optimized .ball-card.ball-ko{animation:none;box-shadow:inset 0 0 0 1px rgba(224,83,58,.22),0 0 20px rgba(224,83,58,.1)}
   .match-scoreboard--glitch.is-glitching table,
   .match-scoreboard--glitch.is-glitching tbody td{animation:none!important;transform:none!important;filter:none!important;text-shadow:none!important}
+  .ember{animation:none!important;opacity:0!important}
+  .pill-demon{animation:none!important}
+  .media-player--glitch{animation:none!important;transform:none!important;filter:none!important}
 }

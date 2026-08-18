@@ -8,11 +8,15 @@
 <link rel="icon" type="image/png" href="assets/img/gold.png">
 <link rel="stylesheet" href="assets/css/app.css">
 <script>
-(function(){try{var m=localStorage.getItem('sbg-display-mode');document.documentElement.className=m==='optimized'?'mode-optimized':'mode-fancy';}catch(e){document.documentElement.className='mode-fancy';}})();
+(function(){try{var m=localStorage.getItem('sbg-display-mode');document.documentElement.className=(m==='optimized'||m==='demon')?'mode-'+m:'mode-fancy';}catch(e){document.documentElement.className='mode-fancy';}})();
 </script>
 </head>
 <body>
 <div id="sky-balls" class="sky-balls" aria-hidden="true"></div>
+<div id="demon-bg" class="demon-bg" aria-hidden="true">
+  <div class="demon-embers" id="demon-embers"></div>
+  <div class="demon-picture"></div>
+</div>
 <div class="wrap">
 
   <header class="topbar">
@@ -27,6 +31,7 @@
       <div class="modes" role="group" aria-label="Display mode">
         <button class="pill" id="pill-fancy" aria-pressed="true">Fancy</button>
         <button class="pill" id="pill-optimized" aria-pressed="false">Optimized</button>
+        <button class="pill pill-demon" id="pill-demon" aria-pressed="false">Demon Time</button>
       </div>
       <div class="drop drop-season">
         <label class="sr-only" for="season-select">Season</label>
