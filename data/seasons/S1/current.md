@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Aug 24, 2026 · evening PT",
+  "updated": "Sep 8, 2026 · evening PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -190,6 +190,38 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "matticus",    "place": 7, "score": 2955, "holesWon": 1,  "holesDone": 35, "parDelta": 15, "knockouts": 134 }
       ],
       "note": "Jester's twelve holes won carried it wire to wire. Sandman quietly racked up the most holes finished in the lobby, forty-three, and still only landed fourth. Toilet Duck stayed disciplined off the tee for the best par in the lobby despite finishing near the bottom. Matticus set a new personal high with 134 knockouts and finished dead last for the third time this season, at this point it might just be his brand."
+    },
+    {
+      "date": "Mon Aug 31",
+      "label": "Night 11",
+      "holes": 45,
+      "video": "https://youtu.be/GK8sNJLODkA",
+      "results": [
+        { "player": "jester",      "place": 1, "score": 3650, "holesWon": 11, "holesDone": 43, "parDelta": 31, "knockouts": 59 },
+        { "player": "sandman",     "place": 2, "score": 3555, "holesWon": 3,  "holesDone": 37, "parDelta": -4, "knockouts": 100 },
+        { "player": "cunder",      "place": 3, "score": 3400, "holesWon": 13, "holesDone": 39, "parDelta": 4,  "knockouts": 73 },
+        { "player": "princegames", "place": 4, "score": 3380, "holesWon": 6,  "holesDone": 37, "parDelta": -5, "knockouts": 125 },
+        { "player": "matticus",    "place": 5, "score": 3295, "holesWon": 5,  "holesDone": 25, "parDelta": 13, "knockouts": 68 },
+        { "player": "toiletduck",  "place": 6, "score": 3230, "holesWon": 6,  "holesDone": 34, "parDelta": 10, "knockouts": 87 },
+        { "player": "rogue",       "place": 7, "score": 2020, "holesWon": 1,  "holesDone": 14, "parDelta": 1,  "knockouts": 29 }
+      ],
+      "note": "Jester backed up Night 10 with another wire-to-wire win, forty-three holes finished along the way. Cunder posted the most holes won in the lobby, thirteen, but still had to settle for third. Princegames quietly had the best par and the most knockouts in the match, one hundred twenty-five, and still only landed fourth. Rogue had a night to forget, stuck on fourteen holes finished and dead last. Matticus stayed off the bottom of the board for once, a small win in itself."
+    },
+    {
+      "date": "Mon Sep 7",
+      "label": "Night 12",
+      "course": "Roundabout",
+      "par": 4,
+      "holes": 45,
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 3800, "holesWon": 14, "holesDone": 38, "parDelta": 3,  "knockouts": 66 },
+        { "player": "rogue",       "place": 2, "score": 3700, "holesWon": 9,  "holesDone": 40, "parDelta": -8, "knockouts": 49 },
+        { "player": "princegames", "place": 3, "score": 3695, "holesWon": 6,  "holesDone": 41, "parDelta": 2,  "knockouts": 52 },
+        { "player": "toiletduck",  "place": 4, "score": 3430, "holesWon": 3,  "holesDone": 36, "parDelta": 17, "knockouts": 71 },
+        { "player": "cunder",      "place": 5, "score": 3370, "holesWon": 9,  "holesDone": 34, "parDelta": 3,  "knockouts": 66 },
+        { "player": "jester",      "place": 6, "score": 3215, "holesWon": 4,  "holesDone": 37, "parDelta": 16, "knockouts": 44 }
+      ],
+      "note": "Sandman logged in under his Aaron alias and ran away with it, fourteen holes won and the gold. Rogue bounced back hard from his Night 11 disaster with the best par in the lobby and a runner-up finish. Toilet Duck brought the most knockouts, seventy-one, despite landing mid-pack. Jester's two-night win streak snapped hard with a last-place finish. Matticus sat this one out."
     }
   ]
 }
