@@ -195,6 +195,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
       "date": "Mon Aug 31",
       "label": "Night 11",
       "holes": 45,
+      "image": "assets/img/nights/night-11.jpg",
       "video": "https://youtu.be/GK8sNJLODkA",
       "results": [
         { "player": "jester",      "place": 1, "score": 3650, "holesWon": 11, "holesDone": 43, "parDelta": 31, "knockouts": 59 },
