@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Sep 8, 2026 · evening PT",
+  "updated": "Sep 18, 2026 · afternoon PT",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -223,6 +223,22 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "jester",      "place": 6, "score": 3215, "holesWon": 4,  "holesDone": 37, "parDelta": 16, "knockouts": 44 }
       ],
       "note": "Sandman logged in under his Aaron alias and ran away with it, fourteen holes won and the gold. Rogue bounced back hard from his Night 11 disaster with the best par in the lobby and a runner-up finish. Toilet Duck brought the most knockouts, seventy-one, despite landing mid-pack. Jester's two-night win streak snapped hard with a last-place finish. Matticus sat this one out."
+    },
+    {
+      "date": "Mon Sep 14",
+      "label": "Night 13",
+      "holes": 45,
+      "results": [
+        { "player": "jester",      "place": 1, "score": 3570, "holesWon": 7,  "holesDone": 42, "parDelta": 13, "knockouts": 73 },
+        { "player": "princegames", "place": 2, "score": 3510, "holesWon": 6,  "holesDone": 44, "parDelta": 12, "knockouts": 93 },
+        { "player": "toiletduck",  "place": 3, "score": 3420, "holesWon": 9,  "holesDone": 39, "parDelta": 11, "knockouts": 71 },
+        { "player": "rogue",       "place": 4, "score": 3320, "holesWon": 4,  "holesDone": 37, "parDelta": -4, "knockouts": 76 },
+        { "player": "cunder",      "place": 5, "score": 3205, "holesWon": 6,  "holesDone": 37, "parDelta": 16, "knockouts": 79 },
+        { "player": "sandman",     "place": 6, "score": 3100, "holesWon": 11, "holesDone": 37, "parDelta": -6, "knockouts": 98 },
+        { "player": "matticus",    "place": 7, "score": 2910, "holesWon": 2,  "holesDone": 36, "parDelta": 26, "knockouts": 176 },
+        { "player": "hiddenplus",  "place": 8, "score": 1130, "holesWon": 0,  "holesDone": 13, "parDelta": 24, "knockouts": 49 }
+      ],
+      "note": "Jester bounced back with another win, his third gold in four nights. Princegames quietly posted the most holes finished in the lobby, forty-four. Sandman had the most holes won and the best par of the night but still only landed sixth. Matticus obliterated his own knockout record with a wild 176, though it wasn't enough to escape the back of the pack. Hidden Plus made his Season 1 debut, a rough first night, but he'll get his shot to climb next season."
     }
   ]
 }
