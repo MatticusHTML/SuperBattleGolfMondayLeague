@@ -9,6 +9,6 @@
     { "slug": "jester",      "name": "Jester",      "handle": "master-jester",       "color": "#9e6b42", "avatar": "assets/img/players/jester.png" },
     { "slug": "slack",       "name": "Slack",       "handle": "slackandlack",        "color": "#d63d4f", "avatar": "assets/img/players/slack.png" },
     { "slug": "spacemanjosh","name": "SpacemanJosh","handle": "SpacemanJosh",        "color": "#8a5cf6", "avatar": null },
-    { "slug": "hiddenplus",  "name": "Hidden Plus", "handle": "Hidden Plus",         "color": "#22d3ee", "avatar": null }
+    { "slug": "hiddenplus",  "name": "Hidden Plus", "handle": "Hidden Plus",         "color": "#22d3ee", "avatar": "assets/img/players/hiddenplus.png" }
   ]
 }
