@@ -92,6 +92,26 @@ other four power the "for fun" cards. Log all six when you have them.
 
 Ties: if two players share a place, give them the same `place` number. The engine handles it.
 
+## Season tracker banner
+
+The banner above "Holding the Gold Ball" shows how long until Season 1 ends and which Monday
+golf nights are left. It is all derived, so there is nothing to edit per night:
+
+- `seasonEnd` in `data/seasons/S1/current.md` (for example `"2026-12-31"`) is the last day of
+  the season. Remove the field to hide the banner.
+- Remaining nights are every Monday after the last logged match that is not already in the
+  past, through `seasonEnd`. Posting a night removes it from the list by itself.
+- It reads each match's `date` (like `Mon Oct 12`) to know what has been played, so keep that
+  format. The year comes from `seasonEnd`.
+- A Monday that gets skipped and never logged drops off the list once that day has passed.
+
+## Replays popup
+
+The Replays button beside the music player opens a list of every Season 1 night that has a
+`video` link, newest first, and clicking one plays it. To add a night, put
+`"video": "https://youtu.be/XXXXXXXXXXX"` on the match. It then shows in the popup and gets a
+Video button on its match card. Use the public watch link, not the YouTube Studio edit link.
+
 ## Season 0 match schema (winner only)
 
 ```json
@@ -163,7 +183,7 @@ rows here. Nothing is hard-coded to 8.
    results screen if you have them.
 4. Update the `updated` field (use Pacific Time, for example `Jun 16, 2026 · evening PT`).
 5. Save, commit in GitHub Desktop, push. The site recomputes standings, the balls, the fun
-   cards, and the champion on its own.
+   cards, the champion, the season tracker, and the replays list on its own.
 
 You never edit `meta`, win counts, or who holds a ball. The engine derives all of it.
 

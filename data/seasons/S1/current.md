@@ -9,7 +9,8 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Oct 7, 2026 · afternoon PT",
+  "updated": "Oct 14, 2026 · afternoon PT",
+  "seasonEnd": "2026-12-31",
   "matches": [
     {
       "date": "Mon Jun 8",
@@ -284,6 +285,22 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "jester",      "place": 6, "score": 3540, "holesWon": 6,  "holesDone": 35, "parDelta": 10, "knockouts": 73 }
       ],
       "note": "Cunder grabbed his third gold of the season with the most holes finished in the lobby, forty-three, and tied Sandman for the most holes won with eleven. Rogue and Sandman both hit minus nine on par, the best in the lobby, and landed second and third. Princegames had the most knockouts, one hundred two, on just two holes won. Jester anchored the board. Matticus and Hidden Plus sat this one out."
+    },
+    {
+      "date": "Mon Oct 12",
+      "label": "Night 17",
+      "holes": 45,
+      "video": "https://youtu.be/udfMeyh1ZpE",
+      "results": [
+        { "player": "toiletduck",  "place": 1, "score": 3755, "holesWon": 6,  "holesDone": 38, "parDelta": 9,   "knockouts": 80 },
+        { "player": "cunder",      "place": 2, "score": 3710, "holesWon": 10, "holesDone": 36, "parDelta": 12,  "knockouts": 104 },
+        { "player": "matticus",    "place": 3, "score": 3655, "holesWon": 8,  "holesDone": 38, "parDelta": 10,  "knockouts": 114 },
+        { "player": "princegames", "place": 4, "score": 3630, "holesWon": 4,  "holesDone": 39, "parDelta": 1,   "knockouts": 135 },
+        { "player": "jester",      "place": 5, "score": 3470, "holesWon": 8,  "holesDone": 39, "parDelta": 27,  "knockouts": 77 },
+        { "player": "rogue",       "place": 6, "score": 3330, "holesWon": 7,  "holesDone": 32, "parDelta": -12, "knockouts": 138 },
+        { "player": "hiddenplus",  "place": 7, "score": 3185, "holesWon": 2,  "holesDone": 30, "parDelta": 77,  "knockouts": 45 }
+      ],
+      "note": "Toilet Duck picked up his second gold of the season, two weeks after his first. Cunder was right behind with the most holes won, ten, and Matticus came back from a two-night break to land on the podium. Rogue took the knockouts crown with 138 and the best par at minus twelve, and still only finished sixth. Hidden Plus rounded out the board. Sandman sat this one out."
     }
   ]
 }

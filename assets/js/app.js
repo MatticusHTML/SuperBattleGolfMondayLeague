@@ -717,6 +717,8 @@
     return /^[\w-]{11}$/.test(s) ? s : null;
   }
 
+  var openVideoById = null;
+
   function initVideoLightbox() {
     var lb = document.getElementById('video-lightbox');
     if (!lb) return;
@@ -740,6 +742,8 @@
       document.body.classList.add('lightbox-open');
       closeBtn.focus();
     }
+
+    openVideoById = openVideo;
 
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('.match-video-btn');
@@ -800,6 +804,83 @@
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape' && !lb.hidden) closeLightbox();
     });
+  }
+
+  /* ---------- replays popup: every night that has a video ---------- */
+  function replayItem(m) {
+    var id = youtubeVideoId(m.video);
+    var winners = (m.results || []).filter(function (r) { return r.place === 1; })
+      .map(function (r) { return r.player; });
+    var name = m.label || m.date || 'Match replay';
+    var sub = [m.date, m.course].filter(Boolean).join(' · ');
+    var caption = [m.label, m.date].filter(Boolean).join(' · ') || 'Match replay';
+
+    var thumb = '<span class="portrait replay-thumb"></span>';
+    if (winners.length) {
+      var w = p(winners[0]);
+      thumb = w.avatar
+        ? '<span class="portrait replay-thumb" style="background-image:url(\'' + esc(w.avatar) + '\')"></span>'
+        : '<span class="portrait replay-thumb" style="--pc:' + esc(w.color) + '">' + esc(firstInitial(w.name)) + '</span>';
+    }
+
+    return '<li><button type="button" class="replay-item" data-video-id="' + esc(id) +
+      '" data-video-label="' + esc(caption) + '">' + thumb +
+      '<span class="replay-meta"><span class="replay-name">' + esc(name) + '</span>' +
+        (sub ? '<span class="replay-sub">' + esc(sub) + '</span>' : '') +
+        (winners.length ? '<span class="replay-won">Won by ' +
+          esc(winners.map(function (s) { return p(s).name; }).join(' & ')) + '</span>' : '') +
+      '</span><span class="replay-play" aria-hidden="true">&#9654;</span></button></li>';
+  }
+
+  function initReplays(matches) {
+    var btn = document.getElementById('replay-btn');
+    var lb = document.getElementById('replay-lightbox');
+    var list = document.getElementById('replay-list');
+    var countEl = document.getElementById('replay-count');
+    var videoLb = document.getElementById('video-lightbox');
+    if (!btn || !lb || !list) return;
+    var closeBtn = lb.querySelector('.lightbox-close');
+
+    var nights = (matches || []).filter(function (m) { return youtubeVideoId(m.video); }).reverse();
+    if (countEl) countEl.textContent = nights.length + (nights.length === 1 ? ' replay' : ' replays');
+    list.innerHTML = nights.length
+      ? nights.map(replayItem).join('')
+      : '<li class="replay-empty">No replays posted yet.</li>';
+
+    function openReplays() {
+      lb.hidden = false;
+      lb.setAttribute('aria-hidden', 'false');
+      btn.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('replay-open');
+      closeBtn.focus();
+    }
+
+    function closeReplays() {
+      lb.hidden = true;
+      lb.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('replay-open');
+      btn.focus();
+    }
+
+    btn.addEventListener('click', openReplays);
+    closeBtn.addEventListener('click', closeReplays);
+    lb.addEventListener('click', function (e) {
+      if (e.target === lb) closeReplays();
+    });
+
+    list.addEventListener('click', function (e) {
+      var item = e.target.closest('.replay-item');
+      if (!item || !openVideoById) return;
+      openVideoById(item.getAttribute('data-video-id'), item.getAttribute('data-video-label') || 'Match replay');
+    });
+
+    // capture phase: while a video is open on top, Escape closes only the video
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || lb.hidden) return;
+      if (videoLb && !videoLb.hidden) return;
+      closeReplays();
+    }, true);
   }
 
   /* ---------- Season 1 compute ---------- */
@@ -1352,6 +1433,96 @@
     });
   }
 
+  /* ---------- season tracker: days left + remaining golf nights ---------- */
+  var MONTH_ABBR = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function dayStart(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+  function addDays(d, n) { return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n); }
+
+  function parseIsoDay(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ''));
+    return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+  }
+
+  // match dates look like "Mon Oct 12" (no year); returns that day in `year`, or null
+  function parseMatchDay(str, year) {
+    var m = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+(\d{1,2})\b/i.exec(String(str || ''));
+    if (!m) return null;
+    var idx = MONTH_ABBR.map(function (a) { return a.toLowerCase(); }).indexOf(m[1].toLowerCase());
+    return new Date(year, idx, +m[2]);
+  }
+
+  // Mondays still to play: after the last logged night, and not already in the past
+  function computeSeasonTracker(data, now) {
+    var end = parseIsoDay(data.seasonEnd);
+    if (!end) return null;
+    var today = dayStart(now);
+
+    var lastPlayed = null;
+    (data.matches || []).forEach(function (m) {
+      var d = parseMatchDay(m.date, end.getFullYear());
+      if (d && (!lastPlayed || d > lastPlayed)) lastPlayed = d;
+    });
+
+    var from = today;
+    if (lastPlayed && addDays(lastPlayed, 1) > from) from = addDays(lastPlayed, 1);
+    var d = from;
+    while (d.getDay() !== 1) d = addDays(d, 1);
+
+    var nights = [];
+    while (d <= end && nights.length < 53) {
+      nights.push(d);
+      d = addDays(d, 7);
+    }
+
+    return {
+      daysLeft: Math.round((end - today) / 86400000),
+      nights: nights,
+      tonight: nights.length > 0 && nights[0].getTime() === today.getTime()
+    };
+  }
+
+  function renderSeasonTracker(data) {
+    var t = computeSeasonTracker(data, new Date());
+    if (!t) return '';
+    var n = t.nights.length;
+
+    var title;
+    if (t.daysLeft < 0) title = 'Season 1 is in the books';
+    else if (t.daysLeft === 0) title = 'Season 1 ends <b>today</b>';
+    else if (t.daysLeft === 1) title = 'Season 1 ends <b>tomorrow</b>';
+    else title = 'Season 1 ends in <b>' + t.daysLeft + ' days</b>';
+
+    var count;
+    if (t.daysLeft < 0) count = 'Final standings are locked';
+    else if (!n) count = 'No golf nights left';
+    else count = (t.tonight ? 'Golf night is tonight &middot; ' : '') + n + ' golf night' + (n === 1 ? '' : 's') + ' left';
+
+    var groups = [];
+    t.nights.forEach(function (d, i) {
+      var g = groups[groups.length - 1];
+      if (!g || g.month !== d.getMonth()) {
+        g = { month: d.getMonth(), days: [] };
+        groups.push(g);
+      }
+      var tip = 'Mon ' + MONTH_ABBR[d.getMonth()] + ' ' + d.getDate() +
+        (i === 0 ? (t.tonight ? ' · tonight' : ' · next golf night') : '') +
+        (i === n - 1 ? ' · season finale' : '');
+      g.days.push('<span class="st-day' + (i === 0 ? ' is-next' : '') + (i === n - 1 ? ' is-finale' : '') +
+        '" title="' + esc(tip) + '">' + d.getDate() + '</span>');
+    });
+
+    var strip = groups.length
+      ? '<ol class="st-dates" aria-label="Remaining golf nights">' + groups.map(function (g) {
+          return '<li class="st-month"><span class="st-mon">' + MONTH_ABBR[g.month] + '</span>' + g.days.join('') + '</li>';
+        }).join('') + '</ol>'
+      : '';
+
+    return '<section class="season-tracker" aria-label="Season 1 schedule">' +
+      '<div class="st-head"><div class="st-title">' + title + '</div>' +
+      '<div class="st-count">' + count + '</div></div>' + strip + '</section>';
+  }
+
   /* ---------- Season 1 render ---------- */
   function renderS1(data, c) {
     if (!data.matches || !data.matches.length) {
@@ -1360,7 +1531,7 @@
         'and every match preserved in the record forever. No takebacks.</p></div>';
     }
 
-    var html = '';
+    var html = renderSeasonTracker(data);
 
     // hero (gold ball holder = most recent winner)
     var koLeader = leaderBy(c.standings, 'knockouts', 'desc');
@@ -1610,6 +1781,7 @@
       initMedia();
       initPortraitLightbox();
       initVideoLightbox();
+      initReplays(s1.matches);
       initTrendCharts(s1.matches);
     })
     .catch(fail);

@@ -43,21 +43,27 @@
       </div>
     </div>
     <div class="topbar-meta">
-      <div class="media-player" id="media-player">
-        <button type="button" class="media-play" id="media-play" aria-label="Play music" aria-pressed="false">&#9654;</button>
-        <button type="button" class="media-skip" id="media-skip" aria-label="Skip to next track">&#9197;</button>
-        <div class="drop drop-tracks">
-          <button type="button" class="media-list" id="media-list" aria-label="Choose track" aria-haspopup="listbox" aria-expanded="false">&#9776;</button>
-          <ul class="drop-menu" id="media-menu" hidden role="listbox" aria-label="Tracks"></ul>
+      <div class="media-row">
+        <button type="button" class="replay-btn" id="replay-btn" aria-haspopup="dialog" aria-expanded="false" aria-label="Open match replays">
+          <span class="replay-btn-icon" aria-hidden="true">&#9654;</span>
+          <span class="replay-btn-label">Replays</span>
+        </button>
+        <div class="media-player" id="media-player">
+          <button type="button" class="media-play" id="media-play" aria-label="Play music" aria-pressed="false">&#9654;</button>
+          <button type="button" class="media-skip" id="media-skip" aria-label="Skip to next track">&#9197;</button>
+          <div class="drop drop-tracks">
+            <button type="button" class="media-list" id="media-list" aria-label="Choose track" aria-haspopup="listbox" aria-expanded="false">&#9776;</button>
+            <ul class="drop-menu" id="media-menu" hidden role="listbox" aria-label="Tracks"></ul>
+          </div>
+          <div class="media-body">
+            <div class="media-track" id="media-track" title="Playlist">Main Menu</div>
+            <label class="media-vol-wrap">
+              <span class="sr-only">Volume</span>
+              <input type="range" class="media-vol" id="media-vol" min="0" max="100" value="30">
+            </label>
+          </div>
+          <audio id="media-audio" preload="auto"></audio>
         </div>
-        <div class="media-body">
-          <div class="media-track" id="media-track" title="Playlist">Main Menu</div>
-          <label class="media-vol-wrap">
-            <span class="sr-only">Volume</span>
-            <input type="range" class="media-vol" id="media-vol" min="0" max="100" value="30">
-          </label>
-        </div>
-        <audio id="media-audio" preload="auto"></audio>
       </div>
       <div class="updated" id="updated">Loading...</div>
     </div>
@@ -83,6 +89,16 @@
     <button type="button" class="lightbox-close" aria-label="Close portrait">&times;</button>
     <img class="lightbox-img" alt="">
     <div class="lightbox-cap" id="lightbox-cap"></div>
+  </div>
+</div>
+<div id="replay-lightbox" class="lightbox lightbox-replays" hidden aria-hidden="true">
+  <div class="lightbox-inner lightbox-inner-replays" role="dialog" aria-modal="true" aria-labelledby="replay-title">
+    <button type="button" class="lightbox-close" aria-label="Close replays">&times;</button>
+    <div class="replay-head">
+      <h2 class="replay-title" id="replay-title">Match Replays</h2>
+      <span class="replay-count" id="replay-count"></span>
+    </div>
+    <ul class="replay-list" id="replay-list"></ul>
   </div>
 </div>
 <div id="video-lightbox" class="lightbox lightbox-video" hidden aria-hidden="true">
