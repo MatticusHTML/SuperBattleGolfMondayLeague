@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Oct 14, 2026 · afternoon PT",
+  "updated": "Oct 26, 2026 · afternoon PT",
   "seasonEnd": "2026-12-31",
   "matches": [
     {
@@ -301,6 +301,22 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "hiddenplus",  "place": 7, "score": 3185, "holesWon": 2,  "holesDone": 30, "parDelta": 77,  "knockouts": 45 }
       ],
       "note": "Toilet Duck picked up his second gold of the season, two weeks after his first. Cunder was right behind with the most holes won, ten, and Matticus came back from a two-night break to land on the podium. Rogue took the knockouts crown with 138 and the best par at minus twelve, and still only finished sixth. Hidden Plus rounded out the board. Sandman sat this one out."
+    },
+    {
+      "date": "Mon Oct 19",
+      "label": "Night 18",
+      "course": "Timber",
+      "par": 4,
+      "holes": 45,
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 4140, "holesWon": 14, "holesDone": 39, "parDelta": -7,  "knockouts": 74 },
+        { "player": "jester",      "place": 2, "score": 3965, "holesWon": 11, "holesDone": 40, "parDelta": 3,   "knockouts": 57 },
+        { "player": "rogue",       "place": 3, "score": 3805, "holesWon": 6,  "holesDone": 32, "parDelta": -13, "knockouts": 110 },
+        { "player": "cunder",      "place": 4, "score": 3795, "holesWon": 9,  "holesDone": 36, "parDelta": -4,  "knockouts": 88 },
+        { "player": "toiletduck",  "place": 5, "score": 3740, "holesWon": 4,  "holesDone": 38, "parDelta": 1,   "knockouts": 85 },
+        { "player": "princegames", "place": 6, "score": 3635, "holesWon": 1,  "holesDone": 32, "parDelta": 7,   "knockouts": 153 }
+      ],
+      "note": "Sandman took his fifth gold of the season, the most of anyone, with a lobby-high fourteen holes won. Jester finished the most holes, forty, and settled for second. Rogue had the best par at minus thirteen and 110 knockouts but could only grab third. Princegames dropped 153 knockouts, the most in the lobby, on a single hole won and still finished last. Matticus and Hidden Plus sat this one out."
     }
   ]
 }
