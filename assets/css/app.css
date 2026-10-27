@@ -11,6 +11,9 @@
   --ball-bronze:url(../img/bronze.png);
   --ball-green:url(../img/green.png);
   --ball-ko:url(../img/ko.png);
+  --flag-gold:url(../img/flag-gold.svg);
+  --flag-silver:url(../img/flag-silver.svg);
+  --flag-bronze:url(../img/flag-bronze.svg);
 
   /* night fairway broadcast desk palette */
   --night:#0b150f;--panel:#13241a;--panel-2:#16291d;--line:#23402f;
@@ -88,6 +91,9 @@ body{
 .ball.bronze{background-image:var(--ball-bronze)}
 .ball.green{background-image:var(--ball-green)}
 .ball.ko{background-image:var(--ball-ko)}
+.ball.flag-gold{background-image:var(--flag-gold)}
+.ball.flag-silver{background-image:var(--flag-silver)}
+.ball.flag-bronze{background-image:var(--flag-bronze)}
 
 /* ---- top bar ---- */
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
@@ -296,7 +302,7 @@ button.portrait.portrait-btn:focus-visible{outline:2px solid var(--fairway);outl
 .trend-panel--par .trend-lead b{color:#9ec4dc}
 
 /* ---- ball legend ---- */
-.legend{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+.legend{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
 .legend .item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .legend .ball{width:26px;height:26px;flex:none}
 .legend .t{font-size:calc(12px * var(--font-scale));line-height:1.25}
@@ -383,7 +389,7 @@ button.portrait.portrait-btn:focus-visible{outline:2px solid var(--fairway);outl
   64%{text-shadow:2px 0 rgba(255,40,90,.38),-2px 0 rgba(40,220,255,.35)}
   72%{text-shadow:-1px 0 rgba(255,30,80,.32),1px 0 rgba(30,220,255,.3)}
   80%{text-shadow:1px 0 rgba(255,50,100,.25),-1px 0 rgba(50,230,255,.22)}}
-.match-actions{padding:8px 16px 10px}
+.match-actions{display:flex;flex-wrap:wrap;gap:8px;padding:8px 16px 10px}
 .match-video-btn{
   display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;
   border:1px solid var(--line);background:transparent;color:var(--muted-2);

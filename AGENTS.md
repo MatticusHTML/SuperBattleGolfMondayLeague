@@ -57,6 +57,20 @@ If you ever want green to mean something else (for example a placement-points sy
 is one spot in `assets/js/app.js`: the `green` line inside `computeS1` and the comment
 marked `LEADER_METRIC`.
 
+## The three flags
+
+Flags rank the season's **total holes finished** (`holesDone` summed across every Season 1
+match). They sit beside the balls in the standings rows, the champion hero, and the legend.
+The engine assigns them automatically, so never set them by hand.
+
+- **Gold flag** = most holes finished this season.
+- **Silver flag** = 2nd most.
+- **Bronze flag** = 3rd most.
+
+A tie in total holes is broken by season points. The icons are `assets/img/flag-gold.svg`,
+`flag-silver.svg` and `flag-bronze.svg`, wired up as `--flag-*` in `assets/css/app.css`.
+Flags never change a standings row's card styling. Only the balls do that.
+
 ## Season 1 match schema
 
 Each match in the `matches` array:
@@ -70,6 +84,8 @@ Each match in the `matches` array:
   "holes": 45,              // optional
   "results": [ ... ],       // one object per player who played, see below
   "note": "..."             // optional one-liner, shown under the table and as the champ quote
+  "video": "..."            // optional, one replay link (public YouTube watch link)
+  "videos": [ ... ]         // optional, several replays, for example POV recordings (see Replays popup)
   "image": "..."            // optional, fun art on the match card in The Record
   "championImage": "..."    // optional, hero banner only while this match is the most recent
 }
@@ -111,6 +127,19 @@ The Replays button beside the music player opens a list of every Season 1 night 
 `video` link, newest first, and clicking one plays it. To add a night, put
 `"video": "https://youtu.be/XXXXXXXXXXX"` on the match. It then shows in the popup and gets a
 Video button on its match card. Use the public watch link, not the YouTube Studio edit link.
+
+When a night has more than one recording (for example each player's POV), use `videos` instead
+of `video`:
+
+```json
+"videos": [
+  { "label": "Matt POV",   "url": "https://youtu.be/XXXXXXXXXXX" },
+  { "label": "Cunder POV", "url": "https://youtu.be/YYYYYYYYYYY" }
+]
+```
+
+Each entry gets its own labeled button on the match card and its own row in the popup. `video`
+and `videos` can be combined, and a night with only `video` keeps working as before.
 
 ## Season 0 match schema (winner only)
 

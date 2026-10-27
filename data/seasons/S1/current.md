@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Oct 26, 2026 · afternoon PT",
+  "updated": "Oct 27, 2026 · afternoon PT",
   "seasonEnd": "2026-12-31",
   "matches": [
     {
@@ -317,6 +317,26 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "princegames", "place": 6, "score": 3635, "holesWon": 1,  "holesDone": 32, "parDelta": 7,   "knockouts": 153 }
       ],
       "note": "Sandman took his fifth gold of the season, the most of anyone, with a lobby-high fourteen holes won. Jester finished the most holes, forty, and settled for second. Rogue had the best par at minus thirteen and 110 knockouts but could only grab third. Princegames dropped 153 knockouts, the most in the lobby, on a single hole won and still finished last. Matticus and Hidden Plus sat this one out."
+    },
+    {
+      "date": "Mon Oct 26",
+      "label": "Night 19",
+      "holes": 45,
+      "image": "assets/img/nights/night-19.jpg",
+      "videos": [
+        { "label": "Matt POV",   "url": "https://youtu.be/CZvULhdPDE0" },
+        { "label": "Cunder POV", "url": "https://www.youtube.com/watch?v=JVt3FyPQu7k" }
+      ],
+      "results": [
+        { "player": "cunder",      "place": 1, "score": 3925, "holesWon": 10, "holesDone": 41, "parDelta": 4,   "knockouts": 81 },
+        { "player": "princegames", "place": 2, "score": 3920, "holesWon": 5,  "holesDone": 40, "parDelta": -6,  "knockouts": 136 },
+        { "player": "jester",      "place": 3, "score": 3705, "holesWon": 9,  "holesDone": 40, "parDelta": 18,  "knockouts": 94 },
+        { "player": "rogue",       "place": 4, "score": 3665, "holesWon": 8,  "holesDone": 38, "parDelta": -3,  "knockouts": 96 },
+        { "player": "sandman",     "place": 5, "score": 3590, "holesWon": 6,  "holesDone": 38, "parDelta": -5,  "knockouts": 76 },
+        { "player": "toiletduck",  "place": 6, "score": 3535, "holesWon": 5,  "holesDone": 36, "parDelta": -10, "knockouts": 82 },
+        { "player": "matticus",    "place": 7, "score": 3475, "holesWon": 2,  "holesDone": 20, "parDelta": 5,   "knockouts": 78 }
+      ],
+      "note": "Cunder slipped past Princegames in the final round and took the gold by five points, 3925 to 3920, his fourth of the season. Prince had the win sitting at the cup until a pack of players swarmed him with golf carts and he couldn't move his ball. He settled for second but still led the lobby with 136 knockouts. Cunder led in holes won and holes finished, and Toilet Duck had the best par at minus ten. Matticus joined around hole twenty and still landed seventh, so the demon is clearly just warming up. Hidden Plus sat this one out."
     }
   ]
 }

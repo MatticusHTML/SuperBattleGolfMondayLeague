@@ -146,10 +146,21 @@
       silver: 'Silver ball',
       bronze: 'Bronze ball',
       green: 'Green ball',
-      ko: 'KO ball'
+      ko: 'KO ball',
+      'flag-gold': 'Gold flag: most holes finished',
+      'flag-silver': 'Silver flag: 2nd most holes finished',
+      'flag-bronze': 'Bronze flag: 3rd most holes finished'
     };
     var label = labels[kind] || kind.charAt(0).toUpperCase() + kind.slice(1) + ' ball';
     return '<span class="ball ' + kind + '" role="img" aria-label="' + label + '" title="' + label + '"></span>';
+  }
+
+  // season holes-finished podium: returns 'flag-gold' | 'flag-silver' | 'flag-bronze' | ''
+  function flagKind(slug, c) {
+    if (c.flags.gold === slug) return 'flag-gold';
+    if (c.flags.silver === slug) return 'flag-silver';
+    if (c.flags.bronze === slug) return 'flag-bronze';
+    return '';
   }
 
   function ballsHeld(slug, c, koLeader) {
@@ -700,13 +711,29 @@
     });
   }
 
+  // every replay on a night: `video` (one link) and/or `videos` ([{ label, url }], for POV recordings)
+  function matchVideos(m) {
+    var out = [];
+    function add(url, label) {
+      var id = youtubeVideoId(url);
+      if (id) out.push({ id: id, label: label || '' });
+    }
+    add(m.video, '');
+    (Array.isArray(m.videos) ? m.videos : []).forEach(function (v) {
+      if (v) add(v.url, v.label);
+    });
+    return out;
+  }
+
   function renderMatchVideo(m) {
-    var id = youtubeVideoId(m.video);
-    if (!id) return '';
-    var label = m.label || m.date || 'Match replay';
-    return '<div class="match-actions">' +
-      '<button type="button" class="match-video-btn" data-video-id="' + esc(id) + '" data-video-label="' + esc(label) + '">' +
-      '&#9654; Video</button></div>';
+    var vids = matchVideos(m);
+    if (!vids.length) return '';
+    var base = m.label || m.date || 'Match replay';
+    return '<div class="match-actions">' + vids.map(function (v) {
+      return '<button type="button" class="match-video-btn" data-video-id="' + esc(v.id) +
+        '" data-video-label="' + esc(v.label ? base + ' · ' + v.label : base) + '">' +
+        '&#9654; ' + esc(v.label || 'Video') + '</button>';
+    }).join('') + '</div>';
   }
 
   function youtubeVideoId(url) {
@@ -807,13 +834,15 @@
   }
 
   /* ---------- replays popup: every night that has a video ---------- */
-  function replayItem(m) {
-    var id = youtubeVideoId(m.video);
+  function replayItem(entry) {
+    var m = entry.match, v = entry.video;
+    var id = v.id;
     var winners = (m.results || []).filter(function (r) { return r.place === 1; })
       .map(function (r) { return r.player; });
-    var name = m.label || m.date || 'Match replay';
+    var name = (m.label || m.date || 'Match replay') + (v.label ? ' · ' + v.label : '');
     var sub = [m.date, m.course].filter(Boolean).join(' · ');
     var caption = [m.label, m.date].filter(Boolean).join(' · ') || 'Match replay';
+    if (v.label) caption += ' · ' + v.label;
 
     var thumb = '<span class="portrait replay-thumb"></span>';
     if (winners.length) {
@@ -841,10 +870,13 @@
     if (!btn || !lb || !list) return;
     var closeBtn = lb.querySelector('.lightbox-close');
 
-    var nights = (matches || []).filter(function (m) { return youtubeVideoId(m.video); }).reverse();
-    if (countEl) countEl.textContent = nights.length + (nights.length === 1 ? ' replay' : ' replays');
-    list.innerHTML = nights.length
-      ? nights.map(replayItem).join('')
+    var replays = [];
+    (matches || []).slice().reverse().forEach(function (m) {
+      matchVideos(m).forEach(function (v) { replays.push({ match: m, video: v }); });
+    });
+    if (countEl) countEl.textContent = replays.length + (replays.length === 1 ? ' replay' : ' replays');
+    list.innerHTML = replays.length
+      ? replays.map(replayItem).join('')
       : '<li class="replay-empty">No replays posted yet.</li>';
 
     function openReplays() {
@@ -952,7 +984,17 @@
     }
     var green = standings.length ? standings[0].slug : null; // LEADER_METRIC = total points
 
-    return { totals: totals, standings: standings, last: last, podium: podium, green: green };
+    // flags: season total holes finished, top three (ties broken by season points)
+    var byHoles = standings.slice().sort(function (a, b) {
+      return (b.holesDone - a.holesDone) || (b.points - a.points);
+    });
+    var flags = {
+      gold: byHoles[0] ? byHoles[0].slug : null,
+      silver: byHoles[1] ? byHoles[1].slug : null,
+      bronze: byHoles[2] ? byHoles[2].slug : null
+    };
+
+    return { totals: totals, standings: standings, last: last, podium: podium, green: green, flags: flags };
   }
 
   function leaderBy(standings, key, dir) {
@@ -1540,7 +1582,8 @@
       var pl = p(champ);
       var heldBalls = ball('gold') +
         (c.green === champ ? ball('green') : '') +
-        (koLeader && koLeader.slug === champ ? ball('ko') : '');
+        (koLeader && koLeader.slug === champ ? ball('ko') : '') +
+        (flagKind(champ, c) ? ball(flagKind(champ, c)) : '');
       var matchMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
       html += '<section class="hero hero-champion">' +
@@ -1565,6 +1608,9 @@
       '<div class="item">' + ball('bronze') + '<div class="t"><b>Bronze</b><span>3rd last Monday</span></div></div>' +
       '<div class="item">' + ball('green') + '<div class="t"><b>Green</b><span>Season points leader</span></div></div>' +
       '<div class="item">' + ball('ko') + '<div class="t"><b>KO</b><span>Season knockouts leader</span></div></div>' +
+      '<div class="item">' + ball('flag-gold') + '<div class="t"><b>Gold Flag</b><span>Most holes finished</span></div></div>' +
+      '<div class="item">' + ball('flag-silver') + '<div class="t"><b>Silver Flag</b><span>2nd most holes finished</span></div></div>' +
+      '<div class="item">' + ball('flag-bronze') + '<div class="t"><b>Bronze Flag</b><span>3rd most holes finished</span></div></div>' +
     '</div>';
 
     // standings
@@ -1578,6 +1624,7 @@
       if (c.podium.bronze === s.slug) held += ball('bronze');
       if (c.green === s.slug) held += ball('green');
       if (koLeader && koLeader.slug === s.slug) held += ball('ko');
+      if (flagKind(s.slug, c)) held += ball(flagKind(s.slug, c));
       html += '<div class="row ' + esc(cardClasses(s.slug, c, koLeader).trim()) + '" style="--pc:' + esc(pl.color) + '">' +
         '<div class="rank">' + (i + 1) + '</div>' +
         portrait(s.slug, 'thumb') +
