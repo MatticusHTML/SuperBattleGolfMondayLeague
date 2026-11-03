@@ -8,10 +8,45 @@
 <link rel="icon" type="image/png" href="assets/img/gold.png">
 <link rel="stylesheet" href="assets/css/app.css">
 <script>
-(function(){try{var m=localStorage.getItem('sbg-display-mode');document.documentElement.className=(m==='optimized'||m==='demon')?'mode-'+m:'mode-fancy';}catch(e){document.documentElement.className='mode-fancy';}})();
+/* Site settings. Edit the values here, nothing else needs to change. */
+window.SBG_CONFIG = {
+  defaultMode: 'demon',          // theme for anyone who has not picked one: 'fancy', 'optimized' or 'demon'
+  modeKey: 'sbg-display-mode-choice',
+  splash: true,                  // opening splash screen (true/false)
+  splashUntil: '2026-11-09'      // splash stops showing on this date (YYYY-MM-DD); delete the line to keep it going
+};
+(function () {
+  var C = window.SBG_CONFIG, root = document.documentElement, mode = C.defaultMode, saved = null;
+  try { saved = localStorage.getItem(C.modeKey); } catch (e) {}
+  if (saved === 'fancy' || saved === 'optimized' || saved === 'demon') mode = saved;
+  if (mode !== 'fancy' && mode !== 'optimized' && mode !== 'demon') mode = 'fancy';
+  root.className = 'mode-' + mode;
+
+  // splash: once per browser session, never with reduced motion; add ?splash to the address to replay it
+  var force = /[?&]splash(=|&|$)/.test(location.search);
+  var show = !!C.splash;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(C.splashUntil || '');
+  if (m && Date.now() >= new Date(+m[1], +m[2] - 1, +m[3]).getTime()) show = false;
+  try {
+    if (show && sessionStorage.getItem('sbg-splash-seen')) show = false;
+    if (show || force) sessionStorage.setItem('sbg-splash-seen', '1');
+  } catch (e) {}
+  if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { show = false; force = false; }
+  if (show || force) root.classList.add('splash-on');
+})();
 </script>
 </head>
 <body>
+<div id="splash" class="splash" aria-hidden="true">
+  <div class="splash-heat"></div>
+  <canvas id="splash-fire" class="splash-fire"></canvas>
+  <div class="splash-vignette"></div>
+  <img class="splash-face" src="assets/img/splash/devil-horror.webp" alt="">
+  <div class="splash-glow"></div>
+  <div class="splash-flash"></div>
+  <div class="splash-skip">Click or tap to skip</div>
+</div>
+<script src="assets/js/splash.js"></script>
 <div id="sky-balls" class="sky-balls" aria-hidden="true"></div>
 <div id="demon-bg" class="demon-bg" aria-hidden="true">
   <div class="demon-embers" id="demon-embers"></div>

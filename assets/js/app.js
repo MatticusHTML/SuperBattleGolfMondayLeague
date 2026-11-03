@@ -64,7 +64,8 @@
   var DEMON_TRACK = { file: 'assets/audio/demon-time-soundtrack.mp3', label: 'Demon Time Mix' };
   var preDemonState = null;
   var FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2000;
-  var MODE_KEY = 'sbg-display-mode';
+  // same key the index.html boot script reads; only a click on a theme pill is ever saved under it
+  var MODE_KEY = (window.SBG_CONFIG && window.SBG_CONFIG.modeKey) || 'sbg-display-mode-choice';
   var VOL_KEY = 'sbg-volume';
   var TRACKS = [
     { file: 'assets/audio/01-main-menu.mp3', label: 'Main Menu' },
@@ -189,7 +190,7 @@
     return c.contains('mode-optimized') ? 'optimized' : 'fancy';
   }
 
-  function setMode(mode) {
+  function setMode(mode, persist) {
     if (mode !== 'optimized' && mode !== 'demon') mode = 'fancy';
     var wasDemon = getMode() === 'demon';
     document.documentElement.classList.toggle('mode-fancy', mode === 'fancy');
@@ -198,7 +199,7 @@
     el.pillFancy.setAttribute('aria-pressed', mode === 'fancy');
     el.pillOptimized.setAttribute('aria-pressed', mode === 'optimized');
     if (el.pillDemon) el.pillDemon.setAttribute('aria-pressed', mode === 'demon');
-    try { localStorage.setItem(MODE_KEY, mode); } catch (e) { /* ignore */ }
+    if (persist) { try { localStorage.setItem(MODE_KEY, mode); } catch (e) { /* ignore */ } }
     refreshFx();
     if (mode === 'demon' && !wasDemon) enterDemonMode();
     else if (mode !== 'demon' && wasDemon) exitDemonMode();
@@ -1820,11 +1821,11 @@
           showSeason(el.seasonSelect.value);
         });
       }
-      el.pillFancy.addEventListener('click', function () { setMode('fancy'); });
-      el.pillOptimized.addEventListener('click', function () { setMode('optimized'); });
-      if (el.pillDemon) el.pillDemon.addEventListener('click', function () { setMode('demon'); });
+      el.pillFancy.addEventListener('click', function () { setMode('fancy', true); });
+      el.pillOptimized.addEventListener('click', function () { setMode('optimized', true); });
+      if (el.pillDemon) el.pillDemon.addEventListener('click', function () { setMode('demon', true); });
 
-      setMode(getMode());
+      setMode(getMode(), false);
       initMedia();
       initPortraitLightbox();
       initVideoLightbox();

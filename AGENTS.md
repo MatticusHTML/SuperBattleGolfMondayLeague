@@ -141,6 +141,22 @@ of `video`:
 Each entry gets its own labeled button on the match card and its own row in the popup. `video`
 and `videos` can be combined, and a night with only `video` keeps working as before.
 
+## Opening splash and default theme
+
+Both are controlled by the `window.SBG_CONFIG` block at the top of `index.html`. Edit the values
+there and nothing else needs to change:
+
+- `defaultMode` (`'fancy'`, `'optimized'` or `'demon'`) is the theme for anyone who has not
+  picked one. A theme is only remembered after a visitor clicks a theme pill, so changing this
+  changes the first impression for everyone who never clicked.
+- `splash` turns the opening splash on or off. `splashUntil` (`YYYY-MM-DD`) makes it stop on that
+  date by itself. Delete the line to keep showing it.
+- The splash is hellfire climbing the screen behind the horror devil (`assets/img/splash/
+  devil-horror.webp`, a transparent WebP), about 2.8 seconds long. It plays once per browser
+  session, never with "reduce motion" on, and a click, tap, Esc or Enter skips it.
+- To preview it, add `?splash` to the address (or `?splash=hold` to keep it on screen).
+- The engine is `assets/js/splash.js` and the look is the splash section of `assets/css/app.css`.
+
 ## Season 0 match schema (winner only)
 
 ```json
@@ -196,6 +212,11 @@ in-game results screen are not tracked. Only `score` matters here.
 - `avatar` is a path to a 500x500 portrait, or null for a gray placeholder. When the real
   portraits arrive, drop them in (for example `assets/img/players/rogue.png`) and set
   `"avatar": "assets/img/players/rogue.png"`.
+
+Kept for history, not referenced by any data file, so never delete these:
+- `assets/img/players/matticus-og.png` is Matticus's original devil portrait, from before his
+  hellfire portrait replaced it as `matticus.png`.
+- `assets/img/players/*-champion.png` are older champion hero images.
 
 Known Steam aliases (map to the roster slug, never create a new player):
 - `Aaron` = `sandman`
