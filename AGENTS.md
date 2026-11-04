@@ -151,11 +151,21 @@ there and nothing else needs to change:
   changes the first impression for everyone who never clicked.
 - `splash` turns the opening splash on or off. `splashUntil` (`YYYY-MM-DD`) makes it stop on that
   date by itself. Delete the line to keep showing it.
+- `splashSeconds` is how long the splash stays up before it fades out on its own (currently 100).
 - The splash is hellfire climbing the screen behind the horror devil (`assets/img/splash/
-  devil-horror.webp`, a transparent WebP), about 2.8 seconds long. It plays once per browser
+  devil-horror.webp`, a transparent WebP), about `splashSeconds` long. It plays once per browser
   session, never with "reduce motion" on, and a click, tap, Esc or Enter skips it.
 - To preview it, add `?splash` to the address (or `?splash=hold` to keep it on screen).
 - The engine is `assets/js/splash.js` and the look is the splash section of `assets/css/app.css`.
+
+### Music start-up
+
+In Demon Time (the default theme) the music opens playing the Demon Time Mix at 40% volume
+(`DEFAULT_VOL` near the top of `assets/js/app.js`). Browsers usually block sound until the
+visitor touches the page, so the engine tries to play right away and, if the browser refuses,
+starts the music on the visitor's first click, tap or key press. On the splash that is the same
+tap that skips it. A visitor who moves the volume slider keeps their own level (saved in their
+browser), and other themes keep their old behavior.
 
 ## Season 0 match schema (winner only)
 

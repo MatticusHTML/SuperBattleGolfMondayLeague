@@ -67,6 +67,7 @@
   // same key the index.html boot script reads; only a click on a theme pill is ever saved under it
   var MODE_KEY = (window.SBG_CONFIG && window.SBG_CONFIG.modeKey) || 'sbg-display-mode-choice';
   var VOL_KEY = 'sbg-volume';
+  var DEFAULT_VOL = 0.4;   // starting volume; a visitor's own slider choice (saved under VOL_KEY) wins
   var TRACKS = [
     { file: 'assets/audio/01-main-menu.mp3', label: 'Main Menu' },
     { file: 'assets/audio/02-lobby.mp3', label: 'Lobby' },
@@ -467,7 +468,7 @@
   }
 
   function getTargetVol() {
-    return el.mediaVol ? el.mediaVol.value / 100 : 0.3;
+    return el.mediaVol ? el.mediaVol.value / 100 : DEFAULT_VOL;
   }
 
   function clearFade() {
@@ -488,7 +489,8 @@
     var from = el.mediaAudio.volume;
     var start = performance.now();
     function step(now) {
-      var t = Math.min(1, (now - start) / ms);
+      // the frame timestamp can land a hair before `start`, so clamp both ends or volume goes negative and throws
+      var t = Math.max(0, Math.min(1, (now - start) / ms));
       el.mediaAudio.volume = from + (to - from) * t;
       if (t < 1) fadeRaf = requestAnimationFrame(step);
       else { fadeRaf = null; if (done) done(); }
@@ -526,7 +528,7 @@
     el.mediaAudio.load();
   }
 
-  function playLoadedTrack(fadeIn, done) {
+  function playLoadedTrack(fadeIn, done, refused) {
     var targetVol = getTargetVol();
     el.mediaAudio.volume = fadeIn ? 0 : targetVol;
     var p = el.mediaAudio.play();
@@ -542,7 +544,40 @@
     }).catch(function () {
       releaseTrackBusy();
       setPlayUi(false);
+      if (refused) refused();
     });
+  }
+
+  // Demon Time opens playing. Browsers often refuse sound until the visitor has touched the page,
+  // so try straight away and, if refused, start on their first click, tap or key press instead
+  // (on the opening splash that is the same tap that skips it).
+  function startDemonMusic() {
+    var armed = false;
+
+    function onGesture(e) {
+      if (e.type === 'keydown' && e.key === 'Escape') return;   // Esc is not a real gesture to the browser
+      disarm();
+      attempt();
+    }
+    function arm() {
+      if (armed) return;
+      armed = true;
+      document.addEventListener('click', onGesture);
+      document.addEventListener('keydown', onGesture);
+    }
+    function disarm() {
+      armed = false;
+      document.removeEventListener('click', onGesture);
+      document.removeEventListener('keydown', onGesture);
+    }
+    function attempt() {
+      // skip if the visitor already moved on: left Demon Time, or hit play themselves
+      if (getMode() !== 'demon' || musicOn || trackBusy) return;
+      trackBusy = true;
+      playLoadedTrack(true, releaseTrackBusy, arm);
+    }
+
+    attempt();
   }
 
   function loadAndPlay(i, shouldPlay, fadeIn, done) {
@@ -624,7 +659,7 @@
 
   function initMedia() {
     if (!el.mediaAudio) return;
-    var vol = 0.3;
+    var vol = DEFAULT_VOL;
     try {
       if (localStorage.getItem(VOL_KEY) !== null) {
         var saved = parseFloat(localStorage.getItem(VOL_KEY));
@@ -651,6 +686,7 @@
       el.mediaAudio.loop = true;
       el.mediaAudio.src = DEMON_TRACK.file;
       el.mediaAudio.load();
+      startDemonMusic();
     } else {
       trackBusy = true;
       loadAndPlay(shuffleOrder[0], true, true, releaseTrackBusy);

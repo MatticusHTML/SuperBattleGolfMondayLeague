@@ -15,7 +15,8 @@
   if (!root || !canvas || !canvas.getContext) { html.classList.remove('splash-on'); return; }
 
   var HOLD = /[?&]splash=hold\b/.test(location.search);
-  var SHOW_MS = 2200;   // fire and face run this long, then the whole splash fades out
+  var cfgSecs = parseFloat((window.SBG_CONFIG || {}).splashSeconds);
+  var SHOW_MS = (cfgSecs > 0 ? cfgSecs : 100) * 1000;   // fire and face run this long (splashSeconds in index.html), then the whole splash fades out
   var FADE_MS = 600;
   var STAGES = 24;      // flame color steps, white-hot to dark red
   var RAMP = [[0, 255, 178, 66], [0.2, 255, 128, 28], [0.5, 238, 74, 12], [0.78, 172, 24, 8], [1, 70, 8, 4]];
