@@ -14,7 +14,7 @@ window.SBG_CONFIG = {
   defaultModeUntil: '2026-11-16',// on this date the default becomes defaultModeAfter by itself (YYYY-MM-DD); delete the line to keep defaultMode
   defaultModeAfter: 'fancy',
   duelTrack: 'assets/audio/legendary-suit-man-ultimate-mix-tape.mp3',  // music for the Duel Winners theme; null keeps the normal playlist
-  modeKey: 'sbg-display-mode-choice',
+  modeKey: 'sbg-display-mode-choice-v2',  // saved-choice slot. Rename it (v3, v4...) to reset everyone's saved theme so a new default is seen by all
   splash: true,                  // opening splash screen (true/false)
   splashSeconds: 20,             // how long the splash stays up before it fades out by itself (a tap, click or Esc skips it)
   splashUntil: '2026-11-16'      // splash stops showing on this date (YYYY-MM-DD); delete the line to keep it going
@@ -29,15 +29,11 @@ window.SBG_CONFIG = {
   if (MODES.indexOf(mode) < 0) mode = 'fancy';
   root.className = 'mode-' + mode;
 
-  // splash: once per browser session, never with reduced motion; add ?splash to the address to replay it
+  // splash: plays on every page load (a refresh shows it again), never with reduced motion; ?splash=hold keeps it up
   var force = /[?&]splash(=|&|$)/.test(location.search);
   var show = !!C.splash;
   var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(C.splashUntil || '');
   if (m && Date.now() >= new Date(+m[1], +m[2] - 1, +m[3]).getTime()) show = false;
-  try {
-    if (show && sessionStorage.getItem('sbg-splash-seen')) show = false;
-    if (show || force) sessionStorage.setItem('sbg-splash-seen', '1');
-  } catch (e) {}
   if (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) { show = false; force = false; }
   if (show || force) root.classList.add('splash-on');
 })();

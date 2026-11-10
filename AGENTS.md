@@ -186,7 +186,8 @@ The splash and default theme are controlled by the `window.SBG_CONFIG` block at 
 `index.html`. Edit the values there and nothing else needs to change:
 
 - `defaultMode` (`'fancy'`, `'optimized'`, `'demon'` or `'duel'`) is the theme for anyone who has
-  not picked one. It is currently `'duel'`. A theme is only remembered after a visitor picks one
+  not picked one. It is currently `'duel'`. To force a new default on everyone, rename `modeKey` (for example `-v2` to `-v3`), which
+  makes the site ignore every previously saved choice once. A theme is only remembered after a visitor picks one
   from the dropdown, so changing this changes the first impression for everyone who never did.
 - `defaultModeUntil` (`YYYY-MM-DD`) is the date the default switches to `defaultModeAfter` on its
   own. Delete the line to keep `defaultMode` forever.
@@ -201,7 +202,7 @@ The splash and default theme are controlled by the `window.SBG_CONFIG` block at 
   sides, then the VS mark, the name plates and the "Night 21 · 3840 points each" line land. The
   text is real HTML in `index.html` (`#splash`), so changing a name or score never needs new art.
 - It is set to stop on `splashUntil` (Mon Nov 16, 2026), the same day the Duel Winners theme stops
-  being the default. It plays once per browser session, never with "reduce motion" on, and a click,
+  being the default. It plays on every page load, so a refresh shows it again (never with "reduce motion" on), and a click,
   tap, Esc, Enter or Space skips it.
 - To preview it, add `?splash` to the address (or `?splash=hold` to keep it on screen).
 - To make a future splash: swap the image and the text in the `#splash` markup in `index.html`,

@@ -1,6 +1,6 @@
 {
   "players": [
-    { "slug": "rogue",       "name": "Rogue",       "handle": "Rogue_Amputee",       "color": "#4da8ff", "avatar": "assets/img/players/rogue.png", "gallery": [{ "src": "assets/img/players/history/rogue-2026-06.png", "label": "June 2026 · original" }] },
+    { "slug": "rogue",       "name": "Rogue",       "handle": "Rogue_Amputee",       "color": "#4da8ff", "avatar": "assets/img/players/rogue.png", "gallery": [{ "src": "assets/img/players/history/rogue-2026-09.png", "label": "September 2026" }, { "src": "assets/img/players/history/rogue-2026-06.png", "label": "June 2026 · original" }] },
     { "slug": "sandman",     "name": "Sandman",     "handle": "Grandmaster Sandman", "color": "#2bb87a", "avatar": "assets/img/players/sandman.png", "gallery": [{ "src": "assets/img/players/history/sandman-2026-09.png", "label": "September 2026 · the desk" }, { "src": "assets/img/players/history/sandman-2026-06.png", "label": "June 2026 · original" }] },
     { "slug": "princegames", "name": "Princegames", "handle": "PrinceGames",         "color": "#e8621a", "avatar": "assets/img/players/princegames.png", "gallery": [{ "src": "assets/img/players/history/princegames-2026-09.png", "label": "September 2026" }, { "src": "assets/img/players/history/princegames-2026-06.png", "label": "June 2026 · original" }] },
     { "slug": "matticus",    "name": "Matticus",    "handle": "the red devil",       "color": "#8f1010", "avatar": "assets/img/players/matticus.png", "gallery": [{ "src": "assets/img/players/matticus-og.png", "label": "June 2026 · original devil" }] },
@@ -9,6 +9,6 @@
     { "slug": "jester",      "name": "Jester",      "handle": "master-jester",       "color": "#9e6b42", "avatar": "assets/img/players/jester.png", "gallery": [{ "src": "assets/img/players/history/jester-2026-09.png", "label": "September 2026" }, { "src": "assets/img/players/history/jester-2026-06.png", "label": "June 2026 · original" }] },
     { "slug": "slack",       "name": "Slack",       "handle": "slackandlack",        "color": "#d63d4f", "avatar": "assets/img/players/slack.png" },
     { "slug": "spacemanjosh","name": "SpacemanJosh","handle": "SpacemanJosh",        "color": "#8a5cf6", "avatar": null },
-    { "slug": "hiddenplus",  "name": "Hidden Plus", "handle": "Hidden Plus",         "color": "#22d3ee", "avatar": "assets/img/players/hiddenplus.png", "gallery": [{ "src": "assets/img/players/history/hiddenplus-2026-09.png", "label": "September 2026 · original" }] }
+    { "slug": "hiddenplus",  "name": "Hidden Plus", "handle": "Hidden Plus",         "color": "#22d3ee", "avatar": "assets/img/players/hiddenplus.png" }
   ]
 }
