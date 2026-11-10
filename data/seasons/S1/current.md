@@ -9,7 +9,7 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
   "name": "Super Battle Golf League",
   "season": "S1",
   "seasonLabel": "Season 1: Monday League",
-  "updated": "Nov 3, 2026 · afternoon PT",
+  "updated": "Nov 10, 2026 · afternoon PT",
   "seasonEnd": "2026-12-31",
   "matches": [
     {
@@ -356,6 +356,26 @@ below. To log a Monday, add a new match object to the end of `matches` and updat
         { "player": "rogue",       "place": 7, "score": 3450, "holesWon": 2,  "holesDone": 31, "parDelta": -3,  "knockouts": 91 }
       ],
       "note": "The demon finally got his gold. Matticus took his first win of the season by ninety points, and he had help: Jester switched to full support mode for the last ten holes and escorted him home. Princegames and Cunder were relentless all night, with Prince finishing second on a lobby-high 143 knockouts. Cunder eased off near the end, but the mental warfare never stopped, a nonstop review of Matticus's playstyle that did not exactly work. Sandman got sneaky in the closing holes, tied Cunder for the most holes won with ten, finished the most holes in the lobby, forty-two, and still only landed third. Toilet Duck had the best par at minus eleven. Hidden Plus sat this one out."
+    },
+    {
+      "date": "Mon Nov 9",
+      "label": "Night 21",
+      "holes": 45,
+      "image": "assets/img/nights/night-21.jpg",
+      "videos": [
+        { "label": "Matt POV",        "url": "https://youtu.be/eavDnrMMSvE" },
+        { "label": "PrinceGames POV", "url": "https://youtu.be/zBkZ9E50a3g" }
+      ],
+      "results": [
+        { "player": "sandman",     "place": 1, "score": 3840, "holesWon": 10, "holesDone": 41, "parDelta": 7,   "knockouts": 69 },
+        { "player": "cunder",      "place": 1, "score": 3840, "holesWon": 10, "holesDone": 41, "parDelta": 27,  "knockouts": 93 },
+        { "player": "rogue",       "place": 3, "score": 3755, "holesWon": 6,  "holesDone": 35, "parDelta": -13, "knockouts": 110 },
+        { "player": "princegames", "place": 4, "score": 3750, "holesWon": 1,  "holesDone": 36, "parDelta": 2,   "knockouts": 147 },
+        { "player": "jester",      "place": 5, "score": 3740, "holesWon": 11, "holesDone": 38, "parDelta": 28,  "knockouts": 79 },
+        { "player": "toiletduck",  "place": 6, "score": 3695, "holesWon": 2,  "holesDone": 29, "parDelta": 12,  "knockouts": 91 },
+        { "player": "matticus",    "place": 7, "score": 3510, "holesWon": 5,  "holesDone": 30, "parDelta": 7,   "knockouts": 125 }
+      ],
+      "note": "A first for the league: Sandman and Cunder tied for the gold at 3840 points, matching each other on ten holes won and forty-one holes finished. The duel could not be settled, so they share the top spot. The match got so crazy that people were legit leaving their ball behind just to cause violence, and the laser spawns felt way heavier than usual, with lasers everywhere. Jester won the most holes, eleven, and still finished fifth. Rogue brought the best par at minus thirteen and 110 knockouts, good for the bronze. Princegames led the lobby with 147 knockouts on a single hole won. Matticus, fresh off his first gold, landed last. Hidden Plus sat this one out."
     }
   ]
 }

@@ -45,7 +45,8 @@ data/
 
 ## The four balls
 
-The engine assigns these automatically. Do not set them by hand.
+The engine assigns these automatically. Do not set them by hand. (In the Duel Winners theme the
+ball icons are drawn as bullets instead. Same logic, different art.)
 
 - **Gold ball** = 1st place in the most recent Season 1 match (the reigning champion).
 - **Silver ball** = 2nd place in the most recent match.
@@ -106,7 +107,12 @@ Each object in `results` is one player's line from the in-game results screen:
 Only `player`, `place`, and `score` are required for the core ball system to work. The
 other four power the "for fun" cards. Log all six when you have them.
 
-Ties: if two players share a place, give them the same `place` number. The engine handles it.
+Ties: if two players share a place, give them the same `place` number and use the standard
+sports numbering that skips the next place (two players tied for 1st means the next player is
+3rd, and nobody is 2nd). The engine handles the rest: every player tied for 1st gets a win and
+holds the gold ball, the champion section turns into "Sharing the Gold Ball" with the
+co-champions side by side, and the same sharing applies to silver and bronze. A normal night with
+one winner looks exactly as before.
 
 ## Season tracker banner
 
@@ -141,31 +147,82 @@ of `video`:
 Each entry gets its own labeled button on the match card and its own row in the popup. `video`
 and `videos` can be combined, and a night with only `video` keeps working as before.
 
-## Opening splash and default theme
+## Themes, opening splash and default theme
 
-Both are controlled by the `window.SBG_CONFIG` block at the top of `index.html`. Edit the values
-there and nothing else needs to change:
+The theme dropdown in the top bar has four choices. The visible names are in `index.html`
+(`#theme-select`) and the values are what the code uses:
 
-- `defaultMode` (`'fancy'`, `'optimized'` or `'demon'`) is the theme for anyone who has not
-  picked one. A theme is only remembered after a visitor clicks a theme pill, so changing this
-  changes the first impression for everyone who never clicked.
+| Dropdown name              | value       |
+|----------------------------|-------------|
+| Default: Fancy             | `fancy`     |
+| Default: Performance Mode  | `optimized` |
+| Duel Winners               | `duel`      |
+| Demon Time                 | `demon`     |
+
+To add a bonus theme later: add an `<option>` there, add its value to the `MODES` lists in
+`assets/js/app.js` and in the boot script in `index.html`, and write a `.mode-<value>` block in
+`assets/css/app.css` (the `.mode-duel` block shows how the color tokens, even the ball icons, are
+swapped). A theme that needs its own background animation can start and stop it from `refreshFx()`
+in `app.js`, the way Duel Winners does with `SBG_DUEL`.
+
+### Duel Winners (temporary theme, built for the Night 21 tie)
+
+A John Wick style black club fight. Orange, blue and white lasers sweep the background, tracer
+rounds streak across and burst into sparks, and brass casings drift down. In this theme the ball
+icons are bullets (`assets/img/bullet-{gold,silver,bronze,green,ko}.svg`, swapped through the
+`--ball-*` variables in the `.mode-duel` block). The flags stay flags.
+
+- Engine: `assets/js/duel-fx.js` (canvas, started and stopped by `refreshFx()`), look: the
+  "duel winners theme" sections of `assets/css/app.css`. With "reduce motion" on, it draws one
+  still frame instead of animating.
+- Music: `duelTrack` in `SBG_CONFIG` is the song (`assets/audio/legendary-suit-man-ultimate-mix-
+  tape.mp3`). Like Demon Time, the player glitches and swaps to that one song. Set it to `null`
+  to keep the normal playlist in this theme.
+- It is the default until `defaultModeUntil` (Mon Nov 16, 2026), then new visitors get
+  `defaultModeAfter` (`'fancy'`) automatically. It stays in the dropdown. To retire it for good,
+  delete its `<option>` and its `.mode-duel` sections.
+
+The splash and default theme are controlled by the `window.SBG_CONFIG` block at the top of
+`index.html`. Edit the values there and nothing else needs to change:
+
+- `defaultMode` (`'fancy'`, `'optimized'`, `'demon'` or `'duel'`) is the theme for anyone who has
+  not picked one. It is currently `'duel'`. A theme is only remembered after a visitor picks one
+  from the dropdown, so changing this changes the first impression for everyone who never did.
+- `defaultModeUntil` (`YYYY-MM-DD`) is the date the default switches to `defaultModeAfter` on its
+  own. Delete the line to keep `defaultMode` forever.
 - `splash` turns the opening splash on or off. `splashUntil` (`YYYY-MM-DD`) makes it stop on that
   date by itself. Delete the line to keep showing it.
-- `splashSeconds` is how long the splash stays up before it fades out on its own (currently 100).
-- The splash is hellfire climbing the screen behind the horror devil (`assets/img/splash/
-  devil-horror.webp`, a transparent WebP), about `splashSeconds` long. It plays once per browser
-  session, never with "reduce motion" on, and a click, tap, Esc or Enter skips it.
+- `splashSeconds` is how long the splash stays up before it fades out on its own (currently 20).
+- The current splash is a John Wick style VERSUS screen for the Night 21 tie: Sandman (orange rim
+  light, left) against Cunder (blue rim light, right), with lasers and tracer fire running behind
+  them. The art is one transparent WebP (`assets/img/splash/duel-vs-2.webp`, 3:2; the first version,
+  `duel-vs.webp`, is kept on purpose with Cunder's angry side-eye face). The page cuts it
+  into a left half and a right half with `clip-path` so the two fighters slam in from opposite
+  sides, then the VS mark, the name plates and the "Night 21 · 3840 points each" line land. The
+  text is real HTML in `index.html` (`#splash`), so changing a name or score never needs new art.
+- It is set to stop on `splashUntil` (Mon Nov 16, 2026), the same day the Duel Winners theme stops
+  being the default. It plays once per browser session, never with "reduce motion" on, and a click,
+  tap, Esc, Enter or Space skips it.
 - To preview it, add `?splash` to the address (or `?splash=hold` to keep it on screen).
-- The engine is `assets/js/splash.js` and the look is the splash section of `assets/css/app.css`.
+- To make a future splash: swap the image and the text in the `#splash` markup in `index.html`,
+  adjust `.vs-*` in `assets/css/app.css` if the art is a different shape, and move `splashUntil`.
+  The old fire and horror devil splash art (`assets/img/splash/devil-horror.webp`) is kept in the
+  repo for history but nothing references it now.
+- The engine is `assets/js/splash.js` (starts the lasers, handles the timer and the skip) and the
+  look is the splash section of `assets/css/app.css`. The lasers come from
+  `SBG_LASERS.create(canvas, { intensity })` in `assets/js/duel-fx.js`, the same scene the Duel
+  Winners theme background uses. `duel-fx.js` must load before `splash.js` in `index.html`.
 
 ### Music start-up
 
-In Demon Time (the default theme) the music opens playing the Demon Time Mix at 40% volume
-(`DEFAULT_VOL` near the top of `assets/js/app.js`). Browsers usually block sound until the
-visitor touches the page, so the engine tries to play right away and, if the browser refuses,
-starts the music on the visitor's first click, tap or key press. On the splash that is the same
-tap that skips it. A visitor who moves the volume slider keeps their own level (saved in their
-browser), and other themes keep their old behavior.
+When the theme in use is Demon Time or Duel Winners (the default if `defaultMode` is that theme,
+otherwise a visitor picked it) the music opens playing that theme's song (the Demon Time Mix, or
+the `duelTrack` song) at 40% volume (`DEFAULT_VOL` near
+the top of `assets/js/app.js`). Browsers usually block sound until the visitor touches the page,
+so the engine tries to play right away and, if the browser refuses, starts the music on the
+visitor's first click, tap or key press. On the splash that is the same tap that skips it. A
+visitor who moves the volume slider keeps their own level (saved in their browser), and the other
+themes keep their old behavior.
 
 ## Season 0 match schema (winner only)
 
@@ -223,10 +280,34 @@ in-game results screen are not tracked. Only `score` matters here.
   portraits arrive, drop them in (for example `assets/img/players/rogue.png`) and set
   `"avatar": "assets/img/players/rogue.png"`.
 
-Kept for history, not referenced by any data file, so never delete these:
-- `assets/img/players/matticus-og.png` is Matticus's original devil portrait, from before his
-  hellfire portrait replaced it as `matticus.png`.
-- `assets/img/players/*-champion.png` are older champion hero images.
+### Picture viewer and outfit history
+
+Clicking any player's portrait (standings, champion section) opens a viewer with zoom (mouse
+wheel, pinch, tap, +/- buttons), panning, arrow keys or swipe to browse, and a thumbnail strip.
+The slides for each player are built automatically, in this order:
+
+1. `avatar`, labeled "Current".
+2. Any `championImage` from a night that player won, labeled "Winner pic" (newest first).
+3. The player's optional `gallery` in `players.json`, newest first. These are earlier outfits:
+
+```json
+{ "slug": "cunder", ..., "avatar": "assets/img/players/cunder.png",
+  "gallery": [ { "src": "assets/img/players/history/cunder-2026-09.png", "label": "September 2026" } ] }
+```
+
+A player with only one picture still gets the zoom viewer, just without arrows or a strip.
+
+**When a player gets a new portrait:** do not overwrite and lose the old one.
+1. Move the old `assets/img/players/<slug>.png` into `assets/img/players/history/` as
+   `<slug>-YYYY-MM.png` (git history is not needed, the file just lives there).
+2. Add it at the **top** of that player's `gallery` with a label such as "October 2026".
+3. Save the new picture as `assets/img/players/<slug>.png`.
+
+Everything in `assets/img/players/history/` is kept on purpose and is only referenced from
+`gallery`, so never delete these. Also kept for history:
+- `assets/img/players/matticus-og.png`, Matticus's original devil portrait (his `gallery` points
+  at it).
+- `assets/img/players/*-champion.png`, older champion hero images (shown as "Winner pic").
 
 Known Steam aliases (map to the roster slug, never create a new player):
 - `Aaron` = `sandman`

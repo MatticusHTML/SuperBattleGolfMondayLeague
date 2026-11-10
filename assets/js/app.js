@@ -34,9 +34,7 @@
   var el = {
     updated: document.getElementById('updated'),
     error: document.getElementById('error'),
-    pillFancy: document.getElementById('pill-fancy'),
-    pillOptimized: document.getElementById('pill-optimized'),
-    pillDemon: document.getElementById('pill-demon'),
+    themeSelect: document.getElementById('theme-select'),
     seasonSelect: document.getElementById('season-select'),
     viewS1: document.getElementById('view-s1'),
     viewS0: document.getElementById('view-s0'),
@@ -62,9 +60,17 @@
   var fadeRaf = null;
   var trackBusy = false;
   var DEMON_TRACK = { file: 'assets/audio/demon-time-soundtrack.mp3', label: 'Demon Time Mix' };
-  var preDemonState = null;
+  var DUEL_TRACK = { file: (window.SBG_CONFIG && window.SBG_CONFIG.duelTrack) || null, label: 'Legendary Suit Man - Ultimate Mix Tape' };
+  var preThemeState = null;
+
+  // themes with their own single song (the player glitches and swaps to it); null = normal playlist
+  function themeTrack(mode) {
+    if (mode === 'demon') return DEMON_TRACK;
+    if (mode === 'duel' && DUEL_TRACK.file) return DUEL_TRACK;
+    return null;
+  }
   var FADE_MS = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 2000;
-  // same key the index.html boot script reads; only a click on a theme pill is ever saved under it
+  // same key the index.html boot script reads; only a choice made in the theme dropdown is ever saved under it
   var MODE_KEY = (window.SBG_CONFIG && window.SBG_CONFIG.modeKey) || 'sbg-display-mode-choice';
   var VOL_KEY = 'sbg-volume';
   var DEFAULT_VOL = 0.4;   // starting volume; a visitor's own slider choice (saved under VOL_KEY) wins
@@ -131,8 +137,9 @@
     if (img && clickable !== false) {
       return '<button type="button" class="portrait portrait-btn ' + c + '"' +
         ' data-portrait="' + esc(img) + '"' +
+        ' data-slug="' + esc(slug) + '"' +
         ' data-name="' + esc(pl.name) + '"' +
-        ' aria-label="View full portrait of ' + esc(pl.name) + '"' +
+        ' aria-label="View pictures of ' + esc(pl.name) + '"' +
         ' style="background-image:url(\'' + esc(img) + '\')"></button>';
     }
     if (img) {
@@ -167,9 +174,9 @@
 
   function ballsHeld(slug, c, koLeader) {
     var balls = [];
-    if (c.podium.gold === slug) balls.push('gold');
-    if (c.podium.silver === slug) balls.push('silver');
-    if (c.podium.bronze === slug) balls.push('bronze');
+    if (c.podium.gold.indexOf(slug) > -1) balls.push('gold');
+    if (c.podium.silver.indexOf(slug) > -1) balls.push('silver');
+    if (c.podium.bronze.indexOf(slug) > -1) balls.push('bronze');
     if (c.green === slug) balls.push('green');
     if (koLeader && koLeader.slug === slug) balls.push('ko');
     return balls;
@@ -185,25 +192,26 @@
     return ballCardClass(slug, c, koLeader);
   }
 
+  var MODES = ['fancy', 'optimized', 'demon', 'duel'];
+
   function getMode() {
     var c = document.documentElement.classList;
-    if (c.contains('mode-demon')) return 'demon';
-    return c.contains('mode-optimized') ? 'optimized' : 'fancy';
+    for (var i = 0; i < MODES.length; i++) { if (c.contains('mode-' + MODES[i])) return MODES[i]; }
+    return 'fancy';
   }
 
   function setMode(mode, persist) {
-    if (mode !== 'optimized' && mode !== 'demon') mode = 'fancy';
-    var wasDemon = getMode() === 'demon';
-    document.documentElement.classList.toggle('mode-fancy', mode === 'fancy');
-    document.documentElement.classList.toggle('mode-optimized', mode === 'optimized');
-    document.documentElement.classList.toggle('mode-demon', mode === 'demon');
-    el.pillFancy.setAttribute('aria-pressed', mode === 'fancy');
-    el.pillOptimized.setAttribute('aria-pressed', mode === 'optimized');
-    if (el.pillDemon) el.pillDemon.setAttribute('aria-pressed', mode === 'demon');
+    if (MODES.indexOf(mode) < 0) mode = 'fancy';
+    var was = getMode();
+    MODES.forEach(function (m) { document.documentElement.classList.toggle('mode-' + m, mode === m); });
+    if (el.themeSelect) el.themeSelect.value = mode;
     if (persist) { try { localStorage.setItem(MODE_KEY, mode); } catch (e) { /* ignore */ } }
     refreshFx();
-    if (mode === 'demon' && !wasDemon) enterDemonMode();
-    else if (mode !== 'demon' && wasDemon) exitDemonMode();
+    if (was !== mode) {
+      var from = themeTrack(was), to = themeTrack(mode);
+      if (to) enterThemeMode(mode, !!from);
+      else if (from) exitThemeMode();
+    }
   }
 
   function launchSkyBall() {
@@ -332,6 +340,7 @@
     }
     if (mode === 'demon') scheduleEmbers();
     else stopEmbers();
+    if (window.SBG_DUEL) { if (mode === 'duel') window.SBG_DUEL.start(); else window.SBG_DUEL.stop(); }
   }
 
   /* ---------- demon time: music player break-and-swap ---------- */
@@ -347,13 +356,18 @@
     setTimeout(run, 950);
   }
 
-  function enterDemonMode() {
-    preDemonState = {
-      trackIdx: trackIdx,
-      musicOn: musicOn,
-      shuffleOrder: shuffleOrder.slice(),
-      shufflePos: shufflePos
-    };
+  // swapping = true when going straight from one themed song to another (keep what to resume)
+  function enterThemeMode(mode, swapping) {
+    var track = themeTrack(mode);
+    if (!track) return;
+    if (!swapping) {
+      preThemeState = {
+        trackIdx: trackIdx,
+        musicOn: musicOn,
+        shuffleOrder: shuffleOrder.slice(),
+        shufflePos: shufflePos
+      };
+    }
     if (el.mediaSkip) el.mediaSkip.hidden = true;
     if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = true;
     closeTrackMenu();
@@ -366,12 +380,12 @@
     trackBusy = true;
 
     function swap() {
-      el.mediaPlayer.classList.remove('media-player--glitch');
-      el.mediaPlayer.classList.add('media-player--demon');
-      el.mediaTrack.textContent = DEMON_TRACK.label;
-      el.mediaTrack.title = DEMON_TRACK.label;
+      el.mediaPlayer.classList.remove('media-player--glitch', 'media-player--demon', 'media-player--duel');
+      el.mediaPlayer.classList.add('media-player--' + mode);
+      el.mediaTrack.textContent = track.label;
+      el.mediaTrack.title = track.label;
       el.mediaAudio.loop = true;
-      el.mediaAudio.src = DEMON_TRACK.file;
+      el.mediaAudio.src = track.file;
       if (wasPlaying) {
         whenTrackReady(function () { playLoadedTrack(true, releaseTrackBusy); });
       } else {
@@ -388,7 +402,7 @@
     }
   }
 
-  function exitDemonMode() {
+  function exitThemeMode() {
     if (el.mediaSkip) el.mediaSkip.hidden = false;
     if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = false;
     if (!el.mediaPlayer || !el.mediaAudio) return;
@@ -400,11 +414,11 @@
     trackBusy = true;
 
     function swap() {
-      el.mediaPlayer.classList.remove('media-player--glitch', 'media-player--demon');
-      var resume = preDemonState || { trackIdx: 0, musicOn: false, shuffleOrder: shuffleOrder, shufflePos: shufflePos };
+      el.mediaPlayer.classList.remove('media-player--glitch', 'media-player--demon', 'media-player--duel');
+      var resume = preThemeState || { trackIdx: 0, musicOn: false, shuffleOrder: shuffleOrder, shufflePos: shufflePos };
       shuffleOrder = resume.shuffleOrder;
       shufflePos = resume.shufflePos;
-      preDemonState = null;
+      preThemeState = null;
       loadAndPlay(resume.trackIdx, resume.musicOn, true, releaseTrackBusy);
     }
 
@@ -548,10 +562,10 @@
     });
   }
 
-  // Demon Time opens playing. Browsers often refuse sound until the visitor has touched the page,
+  // A theme with its own song (Demon Time, or Duel Winners once it has a track) opens playing. Browsers often refuse sound until the visitor has touched the page,
   // so try straight away and, if refused, start on their first click, tap or key press instead
   // (on the opening splash that is the same tap that skips it).
-  function startDemonMusic() {
+  function startThemeMusic() {
     var armed = false;
 
     function onGesture(e) {
@@ -571,8 +585,8 @@
       document.removeEventListener('keydown', onGesture);
     }
     function attempt() {
-      // skip if the visitor already moved on: left Demon Time, or hit play themselves
-      if (getMode() !== 'demon' || musicOn || trackBusy) return;
+      // skip if the visitor already moved on: left the themed music, or hit play themselves
+      if (!themeTrack(getMode()) || musicOn || trackBusy) return;
       trackBusy = true;
       playLoadedTrack(true, releaseTrackBusy, arm);
     }
@@ -677,16 +691,17 @@
 
     buildShuffleOrder();
 
-    if (getMode() === 'demon') {
+    var bootTrack = themeTrack(getMode());
+    if (bootTrack) {
       if (el.mediaSkip) el.mediaSkip.hidden = true;
       if (el.mediaTracksWrap) el.mediaTracksWrap.hidden = true;
-      if (el.mediaPlayer) el.mediaPlayer.classList.add('media-player--demon');
-      el.mediaTrack.textContent = DEMON_TRACK.label;
-      el.mediaTrack.title = DEMON_TRACK.label;
+      if (el.mediaPlayer) el.mediaPlayer.classList.add('media-player--' + getMode());
+      el.mediaTrack.textContent = bootTrack.label;
+      el.mediaTrack.title = bootTrack.label;
       el.mediaAudio.loop = true;
-      el.mediaAudio.src = DEMON_TRACK.file;
+      el.mediaAudio.src = bootTrack.file;
       el.mediaAudio.load();
-      startDemonMusic();
+      startThemeMusic();
     } else {
       trackBusy = true;
       loadAndPlay(shuffleOrder[0], true, true, releaseTrackBusy);
@@ -827,46 +842,209 @@
     });
   }
 
+  /* ---------- picture viewer: current pic, winner pics, and earlier outfits ---------- */
+  var GALLERY = {};
+
+  // slides per player: current avatar, then pics from nights they won (newest first), then earlier pics
+  function buildGalleries(players, matches) {
+    (players || []).forEach(function (pl) {
+      var slides = [];
+      function add(src, label) {
+        if (src && !slides.some(function (x) { return x.src === src; })) slides.push({ src: src, label: label });
+      }
+      add(pl.avatar, 'Current');
+      (matches || []).slice().reverse().forEach(function (m) {
+        if (!m.championImage) return;
+        var won = (m.results || []).some(function (r) { return r.place === 1 && r.player === pl.slug; });
+        if (won) add(m.championImage, 'Winner pic · ' + (m.label || m.date || 'Night'));
+      });
+      (pl.gallery || []).forEach(function (g) { if (g) add(g.src, g.label || 'Earlier'); });
+      GALLERY[pl.slug] = slides;
+    });
+  }
+
   function initPortraitLightbox() {
     var lb = document.getElementById('portrait-lightbox');
     if (!lb) return;
-    var img = lb.querySelector('.lightbox-img');
-    var cap = document.getElementById('lightbox-cap');
+    var view = document.getElementById('gal-view');
+    var img = document.getElementById('gal-img');
+    var nameEl = document.getElementById('gal-name');
+    var labelEl = document.getElementById('gal-label');
+    var countEl = document.getElementById('gal-count');
+    var zoomEl = document.getElementById('gal-zoom');
+    var strip = document.getElementById('gal-strip');
+    var prevBtn = document.getElementById('gal-prev');
+    var nextBtn = document.getElementById('gal-next');
+    var zoomIn = document.getElementById('gal-zoom-in');
+    var zoomOut = document.getElementById('gal-zoom-out');
+    var resetBtn = document.getElementById('gal-reset');
     var closeBtn = lb.querySelector('.lightbox-close');
 
-    function closeLightbox() {
+    var MAX = 5, STEP = 1.5, TAP_ZOOM = 2.5;
+    var slides = [], idx = 0, name = '';
+    var sc = 1, tx = 0, ty = 0;
+    var pointers = {}, drag = null, pinch = null;
+
+    function size() { return view.clientWidth || 1; }
+
+    function clamp() {
+      var lim = (sc - 1) * size() / 2;
+      tx = Math.max(-lim, Math.min(lim, tx));
+      ty = Math.max(-lim, Math.min(lim, ty));
+    }
+
+    function apply() {
+      if (sc <= 1.001) { sc = 1; tx = ty = 0; }
+      clamp();
+      img.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')';
+      zoomEl.textContent = Math.round(sc * 100) + '%';
+      view.classList.toggle('is-zoomed', sc > 1);
+      zoomOut.disabled = sc <= 1;
+      zoomIn.disabled = sc >= MAX;
+      resetBtn.disabled = sc <= 1;
+    }
+
+    // zoom to `next`, keeping the point (px, py), measured from the view's center, still under the cursor
+    function zoomTo(next, px, py) {
+      next = Math.max(1, Math.min(MAX, next));
+      var k = next / sc;
+      tx = px - (px - tx) * k;
+      ty = py - (py - ty) * k;
+      sc = next;
+      apply();
+    }
+
+    function centerOf(e) {
+      var r = view.getBoundingClientRect();
+      return { x: e.clientX - r.left - r.width / 2, y: e.clientY - r.top - r.height / 2 };
+    }
+
+    function show(i) {
+      if (!slides.length) return;
+      idx = (i + slides.length) % slides.length;
+      var s = slides[idx];
+      sc = 1; tx = ty = 0;
+      img.classList.remove('is-in');
+      img.src = s.src;
+      img.alt = name + ', ' + s.label;
+      labelEl.textContent = s.label;
+      countEl.textContent = slides.length > 1 ? (idx + 1) + ' / ' + slides.length : '';
+      Array.prototype.forEach.call(strip.children, function (b, n) {
+        b.setAttribute('aria-current', n === idx ? 'true' : 'false');
+      });
+      var on = strip.children[idx];
+      if (on && on.scrollIntoView) on.scrollIntoView({ block: 'nearest', inline: 'center' });
+      apply();
+      requestAnimationFrame(function () { img.classList.add('is-in'); });
+      var nb = slides[(idx + 1) % slides.length];
+      if (nb && slides.length > 1) { var pre = new Image(); pre.src = nb.src; }
+    }
+
+    function open(slug, pname, startSrc) {
+      slides = (GALLERY[slug] || []).slice();
+      name = pname;
+      if (!slides.length) return;
+      var multi = slides.length > 1;
+      nameEl.textContent = pname;
+      lb.classList.toggle('gal-single', !multi);
+      strip.innerHTML = multi ? slides.map(function (s, n) {
+        return '<button type="button" class="gal-thumb" data-i="' + n + '" aria-label="' + esc(s.label) + '" title="' + esc(s.label) +
+          '" style="background-image:url(\'' + esc(s.src) + '\')"></button>';
+      }).join('') : '';
+      var start = 0;
+      slides.forEach(function (s, n) { if (s.src === startSrc) start = n; });
+      lb.hidden = false;
+      lb.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('lightbox-open');
+      show(start);
+      closeBtn.focus();
+    }
+
+    function close() {
       lb.hidden = true;
       lb.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('lightbox-open');
       img.removeAttribute('src');
+      pointers = {}; drag = null; pinch = null;
     }
 
-    function openLightbox(src, name) {
-      img.src = src;
-      img.alt = name + ' portrait';
-      cap.textContent = name;
-      lb.hidden = false;
-      lb.setAttribute('aria-hidden', 'false');
-      document.body.classList.add('lightbox-open');
-      closeBtn.focus();
-    }
-
+    // open from any portrait on the page
     document.addEventListener('click', function (e) {
       var btn = e.target.closest('.portrait-btn');
-      if (btn) {
-        openLightbox(btn.getAttribute('data-portrait'), btn.getAttribute('data-name'));
+      if (btn) open(btn.getAttribute('data-slug'), btn.getAttribute('data-name'), btn.getAttribute('data-portrait'));
+    });
+
+    closeBtn.addEventListener('click', close);
+    lb.addEventListener('click', function (e) { if (e.target === lb) close(); });
+    prevBtn.addEventListener('click', function () { show(idx - 1); });
+    nextBtn.addEventListener('click', function () { show(idx + 1); });
+    strip.addEventListener('click', function (e) {
+      var b = e.target.closest('.gal-thumb');
+      if (b) show(parseInt(b.getAttribute('data-i'), 10));
+    });
+    zoomIn.addEventListener('click', function () { zoomTo(sc * STEP, 0, 0); });
+    zoomOut.addEventListener('click', function () { zoomTo(sc / STEP, 0, 0); });
+    resetBtn.addEventListener('click', function () { sc = 1; apply(); });
+
+    // wheel zoom, around the cursor
+    view.addEventListener('wheel', function (e) {
+      e.preventDefault();
+      var c = centerOf(e);
+      zoomTo(sc * Math.exp(-e.deltaY * 0.0022), c.x, c.y);
+    }, { passive: false });
+
+    // drag to move, pinch to zoom, tap to zoom in or out, swipe to browse
+    function dist() {
+      var ids = Object.keys(pointers);
+      var a = pointers[ids[0]], b = pointers[ids[1]];
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+    view.addEventListener('pointerdown', function (e) {
+      try { view.setPointerCapture(e.pointerId); } catch (err) { /* pointer already gone */ }
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (Object.keys(pointers).length === 2) {
+        pinch = { d: dist(), sc: sc };
+        drag = null;
+      } else {
+        drag = { x: e.clientX, y: e.clientY, tx: tx, ty: ty, moved: false };
       }
     });
-
-    lb.addEventListener('click', function (e) {
-      if (e.target.classList.contains('lightbox-img')) return;
-      closeLightbox();
+    view.addEventListener('pointermove', function (e) {
+      if (!pointers[e.pointerId]) return;
+      pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      if (pinch && Object.keys(pointers).length >= 2) {
+        zoomTo(pinch.sc * dist() / pinch.d, 0, 0);
+        return;
+      }
+      if (!drag) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true;
+      if (sc > 1) { tx = drag.tx + dx; ty = drag.ty + dy; apply(); }
     });
-
-    closeBtn.addEventListener('click', closeLightbox);
+    view.addEventListener('pointerup', function (e) {
+      var had = pointers[e.pointerId];
+      delete pointers[e.pointerId];
+      if (pinch) { if (Object.keys(pointers).length < 2) pinch = null; drag = null; return; }
+      if (!drag || !had) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      var d = drag; drag = null;
+      if (!d.moved) {                                   // a tap: zoom in at the spot, or back out
+        var c = centerOf(e);
+        if (sc > 1) { sc = 1; apply(); } else zoomTo(TAP_ZOOM, c.x, c.y);
+      } else if (sc === 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) {
+        show(idx + (dx < 0 ? 1 : -1));                  // swipe
+      }
+    });
+    view.addEventListener('pointercancel', function (e) { delete pointers[e.pointerId]; drag = null; pinch = null; });
 
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && !lb.hidden) closeLightbox();
+      if (lb.hidden) return;
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft') show(idx - 1);
+      else if (e.key === 'ArrowRight') show(idx + 1);
+      else if (e.key === '+' || e.key === '=') zoomTo(sc * STEP, 0, 0);
+      else if (e.key === '-' || e.key === '_') zoomTo(sc / STEP, 0, 0);
+      else if (e.key === '0') { sc = 1; apply(); }
     });
   }
 
@@ -1011,12 +1189,13 @@
     // most recent match = last item in the array (always append new matches)
     var last = (data.matches && data.matches.length) ? data.matches[data.matches.length - 1] : null;
 
-    var podium = {};
+    // each slot is a list: players who tie for a place share it
+    var podium = { gold: [], silver: [], bronze: [] };
     if (last) {
       (last.results || []).forEach(function (r) {
-        if (r.place === 1) podium.gold = r.player;
-        if (r.place === 2) podium.silver = r.player;
-        if (r.place === 3) podium.bronze = r.player;
+        if (r.place === 1) podium.gold.push(r.player);
+        if (r.place === 2) podium.silver.push(r.player);
+        if (r.place === 3) podium.bronze.push(r.player);
       });
     }
     var green = standings.length ? standings[0].slug : null; // LEADER_METRIC = total points
@@ -1614,13 +1793,16 @@
 
     // hero (gold ball holder = most recent winner)
     var koLeader = leaderBy(c.standings, 'knockouts', 'desc');
-    var champ = c.podium.gold;
-    if (champ) {
+    var champs = c.podium.gold;
+    function heldBallsFor(slug) {
+      return ball('gold') +
+        (c.green === slug ? ball('green') : '') +
+        (koLeader && koLeader.slug === slug ? ball('ko') : '') +
+        (flagKind(slug, c) ? ball(flagKind(slug, c)) : '');
+    }
+    if (champs.length === 1) {
+      var champ = champs[0];
       var pl = p(champ);
-      var heldBalls = ball('gold') +
-        (c.green === champ ? ball('green') : '') +
-        (koLeader && koLeader.slug === champ ? ball('ko') : '') +
-        (flagKind(champ, c) ? ball(flagKind(champ, c)) : '');
       var matchMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
       html += '<div class="eyebrow">Holding the Gold Ball</div>';
       html += '<section class="hero hero-champion">' +
@@ -1631,7 +1813,25 @@
           '<div class="hero-name">' + esc(pl.name) + '</div>' +
           '<div class="hero-handle">' + esc(pl.handle) + '</div>' +
           (c.last.note ? '<div class="hero-quote">' + esc(c.last.note) + '</div>' : '') +
-          '<div class="hero-balls">' + heldBalls + '</div>' +
+          '<div class="hero-balls">' + heldBallsFor(champ) + '</div>' +
+        '</div>' +
+      '</section>';
+    } else if (champs.length > 1) {
+      var tieMeta = [c.last.date, c.last.course].filter(Boolean).join(' \u00b7 ');
+      html += '<div class="eyebrow">Sharing the Gold Ball</div>';
+      html += '<section class="hero hero-champion hero-tie">' +
+        '<div class="hero-duo">' + champs.map(function (slug) {
+          var cp = p(slug);
+          return '<div class="duo-card">' + portrait(slug, '', true, null) +
+            '<div class="duo-name">' + esc(cp.name) + '</div>' +
+            '<div class="duo-balls">' + heldBallsFor(slug) + '</div></div>';
+        }).join('') + '</div>' +
+        '<div class="hero-body">' +
+          '<div class="hero-tag">' + ball('gold') + ' Co-Champions &middot; ' + esc(c.last.label || 'Night') + '</div>' +
+          (tieMeta ? '<div class="hero-date">' + esc(tieMeta) + '</div>' : '') +
+          '<div class="hero-name">' + champs.map(function (slug) { return esc(p(slug).name); }).join(' <span class="amp">&amp;</span> ') + '</div>' +
+          '<div class="hero-handle">' + champs.map(function (slug) { return esc(p(slug).handle); }).join(' &middot; ') + '</div>' +
+          (c.last.note ? '<div class="hero-quote">' + esc(c.last.note) + '</div>' : '') +
         '</div>' +
       '</section>';
     }
@@ -1656,9 +1856,9 @@
     c.standings.forEach(function (s, i) {
       var pl = p(s.slug);
       var held = '';
-      if (c.podium.gold === s.slug) held += ball('gold');
-      if (c.podium.silver === s.slug) held += ball('silver');
-      if (c.podium.bronze === s.slug) held += ball('bronze');
+      if (c.podium.gold.indexOf(s.slug) > -1) held += ball('gold');
+      if (c.podium.silver.indexOf(s.slug) > -1) held += ball('silver');
+      if (c.podium.bronze.indexOf(s.slug) > -1) held += ball('bronze');
       if (c.green === s.slug) held += ball('green');
       if (koLeader && koLeader.slug === s.slug) held += ball('ko');
       if (flagKind(s.slug, c)) held += ball(flagKind(s.slug, c));
@@ -1857,12 +2057,13 @@
           showSeason(el.seasonSelect.value);
         });
       }
-      el.pillFancy.addEventListener('click', function () { setMode('fancy', true); });
-      el.pillOptimized.addEventListener('click', function () { setMode('optimized', true); });
-      if (el.pillDemon) el.pillDemon.addEventListener('click', function () { setMode('demon', true); });
+      if (el.themeSelect) {
+        el.themeSelect.addEventListener('change', function () { setMode(el.themeSelect.value, true); });
+      }
 
       setMode(getMode(), false);
       initMedia();
+      buildGalleries(playersData.players, s1.matches);
       initPortraitLightbox();
       initVideoLightbox();
       initReplays(s1.matches);

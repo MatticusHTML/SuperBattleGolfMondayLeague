@@ -10,17 +10,23 @@
 <script>
 /* Site settings. Edit the values here, nothing else needs to change. */
 window.SBG_CONFIG = {
-  defaultMode: 'demon',          // theme for anyone who has not picked one: 'fancy', 'optimized' or 'demon'
+  defaultMode: 'duel',           // theme for anyone who has not picked one: 'fancy', 'optimized', 'demon' or 'duel'
+  defaultModeUntil: '2026-11-16',// on this date the default becomes defaultModeAfter by itself (YYYY-MM-DD); delete the line to keep defaultMode
+  defaultModeAfter: 'fancy',
+  duelTrack: 'assets/audio/legendary-suit-man-ultimate-mix-tape.mp3',  // music for the Duel Winners theme; null keeps the normal playlist
   modeKey: 'sbg-display-mode-choice',
   splash: true,                  // opening splash screen (true/false)
-  splashSeconds: 100,            // how long the splash stays up before it fades out by itself (a tap, click or Esc skips it)
-  splashUntil: '2026-11-09'      // splash stops showing on this date (YYYY-MM-DD); delete the line to keep it going
+  splashSeconds: 20,             // how long the splash stays up before it fades out by itself (a tap, click or Esc skips it)
+  splashUntil: '2026-11-16'      // splash stops showing on this date (YYYY-MM-DD); delete the line to keep it going
 };
 (function () {
   var C = window.SBG_CONFIG, root = document.documentElement, mode = C.defaultMode, saved = null;
+  var MODES = ['fancy', 'optimized', 'demon', 'duel'];
+  var until = /^(\d{4})-(\d{2})-(\d{2})$/.exec(C.defaultModeUntil || '');
+  if (until && Date.now() >= new Date(+until[1], +until[2] - 1, +until[3]).getTime()) mode = C.defaultModeAfter || 'fancy';
   try { saved = localStorage.getItem(C.modeKey); } catch (e) {}
-  if (saved === 'fancy' || saved === 'optimized' || saved === 'demon') mode = saved;
-  if (mode !== 'fancy' && mode !== 'optimized' && mode !== 'demon') mode = 'fancy';
+  if (MODES.indexOf(saved) > -1) mode = saved;
+  if (MODES.indexOf(mode) < 0) mode = 'fancy';
   root.className = 'mode-' + mode;
 
   // splash: once per browser session, never with reduced motion; add ?splash to the address to replay it
@@ -39,20 +45,30 @@ window.SBG_CONFIG = {
 </head>
 <body>
 <div id="splash" class="splash" aria-hidden="true">
-  <div class="splash-heat"></div>
-  <canvas id="splash-fire" class="splash-fire"></canvas>
+  <canvas id="splash-fx" class="splash-fx"></canvas>
   <div class="splash-vignette"></div>
-  <img class="splash-face" src="assets/img/splash/devil-horror.webp" alt="">
-  <div class="splash-glow"></div>
+  <div class="splash-title">Duel Winners</div>
+  <div class="vs-stage">
+    <div class="vs-glow vs-glow-l"></div>
+    <div class="vs-glow vs-glow-r"></div>
+    <img class="vs-img vs-left" src="assets/img/splash/duel-vs-2.webp" alt="">
+    <img class="vs-img vs-right" src="assets/img/splash/duel-vs-2.webp" alt="">
+    <div class="vs-mark">VS</div>
+    <div class="vs-name vs-name-l">Sandman</div>
+    <div class="vs-name vs-name-r">Cunder</div>
+  </div>
+  <div class="splash-sub">Night 21 &middot; 3840 points each</div>
   <div class="splash-flash"></div>
   <div class="splash-skip">Click or tap to skip</div>
 </div>
+<script src="assets/js/duel-fx.js"></script>
 <script src="assets/js/splash.js"></script>
 <div id="sky-balls" class="sky-balls" aria-hidden="true"></div>
 <div id="demon-bg" class="demon-bg" aria-hidden="true">
   <div class="demon-embers" id="demon-embers"></div>
   <div class="demon-picture"></div>
 </div>
+<div id="duel-bg" class="duel-bg" aria-hidden="true"><canvas id="duel-fx" class="duel-fx"></canvas></div>
 <div class="wrap">
 
   <header class="topbar">
@@ -64,10 +80,14 @@ window.SBG_CONFIG = {
       </div>
     </div>
     <div class="topbar-actions">
-      <div class="modes" role="group" aria-label="Display mode">
-        <button class="pill" id="pill-fancy" aria-pressed="true">Fancy</button>
-        <button class="pill" id="pill-optimized" aria-pressed="false">Optimized</button>
-        <button class="pill pill-demon" id="pill-demon" aria-pressed="false">Demon Time</button>
+      <div class="drop drop-theme">
+        <label class="sr-only" for="theme-select">Theme</label>
+        <select class="desk-select" id="theme-select" aria-label="Theme">
+          <option value="fancy" selected>Default: Fancy</option>
+          <option value="optimized">Default: Performance Mode</option>
+          <option value="duel">Duel Winners</option>
+          <option value="demon">Demon Time</option>
+        </select>
       </div>
       <div class="drop drop-season">
         <label class="sr-only" for="season-select">Season</label>
@@ -120,11 +140,29 @@ window.SBG_CONFIG = {
   </footer>
 
 </div>
-<div id="portrait-lightbox" class="lightbox" hidden aria-hidden="true">
-  <div class="lightbox-inner" role="dialog" aria-modal="true" aria-label="Player portrait">
-    <button type="button" class="lightbox-close" aria-label="Close portrait">&times;</button>
-    <img class="lightbox-img" alt="">
-    <div class="lightbox-cap" id="lightbox-cap"></div>
+<div id="portrait-lightbox" class="lightbox lightbox-gallery" hidden aria-hidden="true">
+  <div class="lightbox-inner gal" role="dialog" aria-modal="true" aria-labelledby="gal-name">
+    <button type="button" class="lightbox-close" aria-label="Close pictures">&times;</button>
+    <div class="gal-head">
+      <span class="gal-name" id="gal-name"></span>
+      <span class="gal-label" id="gal-label"></span>
+    </div>
+    <div class="gal-stage">
+      <button type="button" class="gal-nav gal-prev" id="gal-prev" aria-label="Previous picture">&#8249;</button>
+      <div class="gal-view" id="gal-view">
+        <img class="gal-img" id="gal-img" alt="" draggable="false">
+      </div>
+      <button type="button" class="gal-nav gal-next" id="gal-next" aria-label="Next picture">&#8250;</button>
+    </div>
+    <div class="gal-tools">
+      <button type="button" class="gal-btn" id="gal-zoom-out" aria-label="Zoom out">&minus;</button>
+      <span class="gal-zoom" id="gal-zoom">100%</span>
+      <button type="button" class="gal-btn" id="gal-zoom-in" aria-label="Zoom in">+</button>
+      <button type="button" class="gal-btn gal-reset" id="gal-reset">Reset</button>
+      <span class="gal-count" id="gal-count"></span>
+    </div>
+    <div class="gal-strip" id="gal-strip" role="group" aria-label="Pictures over time"></div>
+    <div class="gal-hint" id="gal-hint">Scroll or pinch to zoom &middot; drag to move &middot; arrow keys to browse</div>
   </div>
 </div>
 <div id="replay-lightbox" class="lightbox lightbox-replays" hidden aria-hidden="true">
